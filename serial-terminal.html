@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebSerial Terminal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Grotesk:wght@400;600&display=swap');
+
+  :root {
+    --bg:       #0a0c0f;
+    --surface:  #111418;
+    --border:   #1e2530;
+    --green:    #00ff9d;
+    --green-dim:#00ff9d44;
+    --amber:    #ffb700;
+    --red:      #ff4560;
+    --muted:    #4a5568;
+    --text:     #c9d1d9;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+  }
+
+  /* scanline overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,.08) 2px,
+      rgba(0,0,0,.08) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  header {
+    width: 100%; max-width: 860px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .logo {
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+  }
+
+  .logo svg { filter: drop-shadow(0 0 6px var(--green)); }
+
+  h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--green);
+    text-shadow: 0 0 18px var(--green-dim);
+  }
+
+  h1 span { color: var(--muted); font-weight: 300; }
+
+  .badge {
+    margin-left: auto;
+    font-size: .65rem;
+    letter-spacing: .12em;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--muted);
+  }
+
+  /* ── MAIN CARD ── */
+  .card {
+    width: 100%; max-width: 860px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  /* title bar */
+  .titlebar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px;
+    background: #0d1117;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #ff5f56; }
+  .dot.y { background: #ffbd2e; }
+  .dot.g { background: #27c93f; }
+
+  .titlebar-label {
+    margin-left: 6px;
+    font-size: .7rem;
+    letter-spacing: .15em;
+    color: var(--muted);
+  }
+
+  /* controls bar */
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    background: #0d1117cc;
+  }
+
+  .field {
+    display: flex; flex-direction: column; gap: 5px;
+  }
+
+  label {
+    font-size: .6rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  select, input[type="number"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .8rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  select:focus, input[type="number"]:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 2px var(--green-dim);
+  }
+
+  select { min-width: 110px; cursor: pointer; }
+  input[type="number"] { width: 96px; }
+
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 7px 18px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+
+  .btn-connect {
+    background: var(--green);
+    color: #000;
+    box-shadow: 0 0 16px var(--green-dim);
+  }
+
+  .btn-connect:hover { filter: brightness(1.15); }
+
+  .btn-disconnect {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red);
+  }
+
+  .btn-disconnect:hover { background: var(--red); color: #fff; }
+
+  .btn:disabled { opacity: .35; cursor: not-allowed; filter: none; }
+
+  /* status pill */
+  .status-pill {
+    display: flex; align-items: center; gap: 7px;
+    margin-left: auto;
+    font-size: .7rem;
+    letter-spacing: .1em;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted);
+    transition: background .3s, box-shadow .3s;
+  }
+
+  .status-dot.connected {
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 1.8s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 8px var(--green); }
+    50%       { box-shadow: 0 0 18px var(--green); }
+  }
+
+  .status-dot.error { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+  /* terminal output */
+  #output {
+    height: 340px;
+    overflow-y: auto;
+    padding: 14px 16px;
+    font-size: .8rem;
+    line-height: 1.7;
+    background: var(--bg);
+  }
+
+  #output::-webkit-scrollbar { width: 4px; }
+  #output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .line { display: flex; gap: 10px; }
+  .line-time { color: var(--muted); flex-shrink: 0; user-select: none; }
+  .line-dir  { flex-shrink: 0; font-weight: 700; user-select: none; }
+  .line-dir.rx { color: var(--green); }
+  .line-dir.tx { color: var(--amber); }
+  .line-dir.sys { color: var(--muted); }
+  .line-text { word-break: break-all; }
+  .line-text.rx  { color: var(--text); }
+  .line-text.tx  { color: var(--amber); }
+  .line-text.sys { color: var(--muted); font-style: italic; }
+  .line-text.err { color: var(--red); }
+
+  /* input row */
+  .input-row {
+    display: flex; gap: 0;
+    border-top: 1px solid var(--border);
+    background: #0d1117;
+  }
+
+  .prompt-label {
+    padding: 10px 12px;
+    font-size: .85rem;
+    color: var(--green);
+    user-select: none;
+    border-right: 1px solid var(--border);
+  }
+
+  #sendInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .82rem;
+    padding: 10px 12px;
+    caret-color: var(--green);
+  }
+
+  #sendInput::placeholder { color: var(--muted); }
+  #sendInput:disabled { opacity: .4; }
+
+  .send-opts {
+    display: flex; align-items: center;
+    padding: 0 10px;
+    border-left: 1px solid var(--border);
+    gap: 8px;
+  }
+
+  .send-opts label { font-size: .6rem; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .send-opts input[type="checkbox"] { accent-color: var(--green); cursor: pointer; }
+
+  .btn-send {
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border);
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    padding: 0 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background .15s;
+  }
+
+  .btn-send:hover { background: var(--green-dim); }
+  .btn-send:disabled { opacity: .35; cursor: not-allowed; }
+
+  /* footer */
+  footer {
+    margin-top: 18px;
+    font-size: .62rem;
+    letter-spacing: .1em;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect x="2" y="6" width="20" height="12" rx="2" stroke="#00ff9d" stroke-width="1.5"/>
+      <path d="M6 10l3 2-3 2M13 14h4" stroke="#00ff9d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h1>WebSerial <span>/ Terminal</span></h1>
+  <div class="badge">CHROME · EDGE · OPERA</div>
+</header>
+
+<div class="card">
+  <div class="titlebar">
+    <div class="dot r"></div>
+    <div class="dot y"></div>
+    <div class="dot g"></div>
+    <span class="titlebar-label">serial connection</span>
+  </div>
+
+  <div class="controls">
+    <div class="field">
+      <label>Baud Rate</label>
+      <select id="baudRate">
+        <option>9600</option>
+        <option>19200</option>
+        <option>38400</option>
+        <option>57600</option>
+        <option selected>115200</option>
+        <option>230400</option>
+        <option>460800</option>
+        <option>921600</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Data Bits</label>
+      <select id="dataBits">
+        <option>7</option>
+        <option selected>8</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Stop Bits</label>
+      <select id="stopBits">
+        <option selected>1</option>
+        <option>2</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Parity</label>
+      <select id="parity">
+        <option selected>none</option>
+        <option>even</option>
+        <option>odd</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Flow Control</label>
+      <select id="flowControl">
+        <option selected>none</option>
+        <option>hardware</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Buffer (bytes)</label>
+      <input type="number" id="bufferSize" value="255" min="64" max="65536" />
+    </div>
+
+    <button class="btn btn-connect"    id="btnConnect">Connect</button>
+    <button class="btn btn-disconnect" id="btnDisconnect" disabled>Disconnect</button>
+
+    <div class="status-pill">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">disconnected</span>
+    </div>
+  </div>
+
+  <div id="output"></div>
+
+  <div class="input-row">
+    <span class="prompt-label">&gt;_</span>
+    <input id="sendInput" type="text" placeholder="type data to send…" disabled />
+    <div class="send-opts">
+      <label title="Append \\r\\n to every message">
+        <input type="checkbox" id="appendNewline" checked /> CRLF
+      </label>
+      <label title="Display received bytes as hex">
+        <input type="checkbox" id="hexMode" /> HEX
+      </label>
+    </div>
+    <button class="btn-send" id="btnSend" disabled>Send</button>
+  </div>
+</div>
+
+<footer>
+  WebSerial API &mdash; requires a secure context (https or localhost) &middot;
+  <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API" target="_blank">MDN docs ↗</a>
+</footer>
+
+<script>
+/* ─────────────────────────────────────────
+   WebSerial Terminal  –  core logic
+───────────────────────────────────────── */
+
+let port       = null;
+let reader     = null;
+let readLoop   = null;
+let writer     = null;
+let keepReading = false;
+
+const output       = document.getElementById('output');
+const btnConnect   = document.getElementById('btnConnect');
+const btnDisconnect= document.getElementById('btnDisconnect');
+const btnSend      = document.getElementById('btnSend');
+const sendInput    = document.getElementById('sendInput');
+const statusDot    = document.getElementById('statusDot');
+const statusText   = document.getElementById('statusText');
+const appendNL     = document.getElementById('appendNewline');
+const hexMode      = document.getElementById('hexMode');
+
+/* ── Utility: log to terminal ── */
+function log(text, dir = 'sys') {
+  const now   = new Date();
+  const stamp = now.toTimeString().slice(0, 8) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+
+  const dirLabels = { rx: '←RX', tx: '→TX', sys: '···', err: '!!!', };
+
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.innerHTML =
+    `<span class="line-time">${stamp}</span>` +
+    `<span class="line-dir ${dir}">${dirLabels[dir] ?? dir}</span>` +
+    `<span class="line-text ${dir}">${escapeHtml(text)}</span>`;
+
+  output.appendChild(line);
+  output.scrollTop = output.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ── Utility: set UI state ── */
+function setConnected(connected, errored = false) {
+  btnConnect.disabled    =  connected;
+  btnDisconnect.disabled = !connected;
+  btnSend.disabled       = !connected;
+  sendInput.disabled     = !connected;
+
+  statusDot.className = 'status-dot' + (connected ? ' connected' : errored ? ' error' : '');
+  statusText.textContent = connected ? 'connected' : errored ? 'error' : 'disconnected';
+}
+
+/* ── Gather serial options from UI ── */
+function getSerialOptions() {
+  return {
+    baudRate:    parseInt(document.getElementById('baudRate').value),
+    dataBits:    parseInt(document.getElementById('dataBits').value),
+    stopBits:    parseInt(document.getElementById('stopBits').value),
+    parity:      document.getElementById('parity').value,
+    flowControl: document.getElementById('flowControl').value,
+    bufferSize:  parseInt(document.getElementById('bufferSize').value),
+  };
+}
+
+/* ── Connect ── */
+btnConnect.addEventListener('click', async () => {
+  if (!('serial' in navigator)) {
+    log('WebSerial API is not supported in this browser. Use Chrome ≥ 89, Edge ≥ 89, or Opera ≥ 76.', 'err');
+    return;
+  }
+
+  try {
+    port = await navigator.serial.requestPort();
+    const opts = getSerialOptions();
+    await port.open(opts);
+
+    log(`Port opened  –  ${opts.baudRate} baud · ${opts.dataBits}N${opts.stopBits} · parity:${opts.parity} · flow:${opts.flowControl}`, 'sys');
+    setConnected(true);
+    startReading();
+  } catch (err) {
+    if (err.name === 'NotFoundError') {
+      log('No port selected.', 'sys');
+    } else {
+      log(`Connect error: ${err.message}`, 'err');
+      setConnected(false, true);
+    }
+  }
+});
+
+/* ── Disconnect ── */
+btnDisconnect.addEventListener('click', async () => {
+  await disconnect();
+});
+
+async function disconnect() {
+  keepReading = false;
+
+  // cancel the reader to unblock the read loop
+  if (reader) {
+    try { await reader.cancel(); } catch (_) {}
+    reader = null;
+  }
+
+  // wait for the read loop to finish, then close
+  if (readLoop) {
+    try { await readLoop; } catch (_) {}
+    readLoop = null;
+  }
+
+  if (writer) {
+    try { await writer.close(); } catch (_) {}
+    writer = null;
+  }
+
+  if (port) {
+    try { await port.close(); } catch (_) {}
+    port = null;
+  }
+
+  log('Port closed.', 'sys');
+  setConnected(false);
+}
+
+/* ── Read loop ── */
+function startReading() {
+  keepReading = true;
+  readLoop = (async () => {
+    const decoder = new TextDecoder();
+
+    while (port?.readable && keepReading) {
+      reader = port.readable.getReader();
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            if (hexMode.checked) {
+              const hex = Array.from(value)
+                .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+                .join(' ');
+              log(hex, 'rx');
+            } else {
+              // strip trailing newlines for cleaner display
+              const text = decoder.decode(value, { stream: true }).replace(/[\r\n]+$/, '');
+              if (text) log(text, 'rx');
+            }
+          }
+        }
+      } catch (err) {
+        if (keepReading) {
+          log(`Read error: ${err.message}`, 'err');
+          setConnected(false, true);
+        }
+      } finally {
+        reader.releaseLock();
+        reader = null;
+      }
+    }
+  })();
+}
+
+/* ── Send ── */
+async function sendData() {
+  if (!port?.writable) return;
+
+  const text = sendInput.value;
+  if (!text) return;
+
+  const encoder = new TextEncoder();
+  const data    = appendNL.checked ? text + '\r\n' : text;
+
+  try {
+    writer = port.writable.getWriter();
+    await writer.write(encoder.encode(data));
+    writer.releaseLock();
+    writer = null;
+
+    log(text, 'tx');
+    sendInput.value = '';
+  } catch (err) {
+    log(`Send error: ${err.message}`, 'err');
+  }
+}
+
+btnSend.addEventListener('click', sendData);
+sendInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendData(); });
+
+/* ── Handle physical disconnect ── */
+navigator.serial?.addEventListener('disconnect', (e) => {
+  if (e.target === port) {
+    log('Device disconnected.', 'err');
+    keepReading = false;
+    port = null;
+    setConnected(false, true);
+  }
+});
+
+/* ── Browser guard ── */
+if (!('serial' in navigator)) {
+  log('WebSerial is not available. Open in Chrome, Edge, or Opera over https / localhost.', 'err');
+  btnConnect.disabled = true;
+}
+</script>
+</body>
+</html>
