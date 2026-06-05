@@ -15,9 +15,9 @@ let serial = {
 serial.connect = async function () {
     try {
         serial.port = await navigator.serial.requestPort()
-        await serial.port.open(serialOptions)
+        await serial.port.open(serial.serialOptions)
         console.log('connected to', serial.port)
-        read()
+        serial.read()
     } catch (e) {
         console.error('error connecting:',e)
     }
@@ -56,6 +56,12 @@ serial.read = async function () {
 
                 if (value) {
                     console.log(value)
+
+                    let txt = uint8ArrayToHexString(value)
+                    let dec = uint8ArrayToTxt(value)
+                    document.getElementById('content').innerHTML+=`
+                    <div class="message read">${txt} ${dec}</div>`
+
                 } else {
                     console.log('no value ...')
                 }
@@ -69,19 +75,16 @@ serial.read = async function () {
     }
 }
 
-serial.write = async function (txt) {
+serial.write = async function (uint8Array) {
     if (!serial.port?.writable) return
-    
-    const encoder = new TextEncoder()
-
     try {
         serial.writer = serial.port.writable.getWriter()
-        await serial.writer.write(encoder.encode(txt))
+        await serial.writer.write(uint8Array)
         serial.writer.releaseLock()
         serial.writer = null
 
     } catch (e) {
-        console.error('senging error',e)
+        console.error('sending error',e)
     }
 
 }

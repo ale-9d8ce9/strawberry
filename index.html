@@ -12,10 +12,33 @@
             padding: 1rem;
             display: inline-block;
         }
+        .message {
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div id="colors"></div>
+    <div id="ui">
+        <div id="controls">
+            <button onclick="serial.connect()">connect</button>
+            <input type="text" id="inpt">
+            <button onclick="wwrite()">write</button>
+        </div>
+        <div id="content">
+        </div>
+    </div>
+    <script>
+        function wwrite() {
+            let txt = document.getElementById('inpt').value
+            console.log(txt)
+            let uint8 = hexStringToUint8Array(txt)
+            serial.write(uint8)
+            document.getElementById('content').innerHTML+=`
+            <div class="message sent">${txt}</div>`
+        }
+    </script>
+    <script src="scripts.js"></script>
     <script src="serial.js"></script>
     <script src="generateColors.js"></script>
 </body>
