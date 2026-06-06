@@ -16,3 +16,9 @@ function uint8ArrayToTxt(uint8Array) {
     let decoder = new TextDecoder()
     return decoder.decode(uint8Array)
 }
+
+async function delay(ms) {
+    return new Promise((resolve, reject) => {
+        window.setTimeout(resolve, ms)
+    })
+}

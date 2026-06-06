@@ -3,40 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bomgoclat</title>
-    <style>
-        body {
-            background-color: #062632;
-        }
-        .c {
-            padding: 1rem;
-            display: inline-block;
-        }
-        .message {
-            color: white;
-        }
-    </style>
+    <title>strawberry</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="hexMonitor.css">
 </head>
 <body>
     <div id="colors"></div>
     <div id="ui">
         <div id="controls">
-            <button onclick="serial.connect()">connect</button>
-            <input type="text" id="inpt">
-            <button onclick="wwrite()">write</button>
-        </div>
-        <div id="content">
         </div>
     </div>
+    <hexMonitor>
+        <div>
+            <input type="text" placeholder="hex" id="hm-hex" onfocus="this.value = ''" oninput="document.getElementById('hm-int').value = parseInt(this.value, 16)">
+            <input type="text" placeholder="int" id="hm-int" onfocus="this.value = ''" oninput="document.getElementById('hm-hex').value = parseInt(this.value).toString(16)">
+        </div>
+        <div>
+            <button onclick="serial.clearHistory()">clear</button>
+            <button onclick="serial.resetDevice()">send reset</button>
+            <button onclick="serial.connect()">connect</button>
+            <input type="text" id="inpt" placeholder="send to device">
+            <button onclick="serial.send(document.getElementById('inpt').value);document.getElementById('inpt').value = ''">send</button>
+        </div>
+        <div id="hexMonitor-content"></div>
+    </hexMonitor>
     <script>
-        function wwrite() {
-            let txt = document.getElementById('inpt').value
-            console.log(txt)
-            let uint8 = hexStringToUint8Array(txt)
-            serial.write(uint8)
-            document.getElementById('content').innerHTML+=`
-            <div class="message sent">${txt}</div>`
-        }
+
     </script>
     <script src="scripts.js"></script>
     <script src="serial.js"></script>
