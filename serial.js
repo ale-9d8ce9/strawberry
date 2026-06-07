@@ -2,58 +2,41 @@ let serial = {
     port: null,
     reader: null,
     writer: null,
-    keepReading: false,
+    deviceBusy: false,
+    deviceConnected: false,
 
     currentlyReceiving: '',
     history: [],
 
-    updateSerialMonitor: true,
-
     serialOptions: {
-        baudRate: 9600,
+        baudRate: config.serialSpeed,
         dataBits: 8,
-        stopBits: 2,
+        stopBits: 1,
         parity: 'odd',
-        bufferSize: 1023
-    }
+        bufferSize: 510
+    },
+    filters: [
+        {usbVendorId: 0x1A86, usbProductId: 0xE013},
+        {usbVendorId: 0x2341, usbProductId: 0x0043} // arduino uno test board
+    ]
 }
 
 serial.connect = async function () {
     try {
-        serial.port = await navigator.serial.requestPort()
+        serial.port = await navigator.serial.requestPort({filters: serial.filters})
         await serial.port.open(serial.serialOptions)
         console.log('connected to', serial.port)
+        serial.deviceBusy = false
+        serial.deviceConnected = true
         serial.read()
     } catch (e) {
         console.error('error connecting:',e)
     }
 }
 
-serial.disconnect = async function () {
-    if (serial.reading) {
-        console.error('can\'t disconnect\nstill reading')
-        return
-    }
-
-    if (serial.reader) {
-        try { await serial.reader.cancel(); } catch (_) {}
-        serial.reader = null;
-    }
-    if (serial.writer) {
-        try { await serial.writer.close(); } catch (_) {}
-        serial.writer = null;
-    }
-    if (serial.port) {
-        try { await serial.port.close(); } catch (_) {}
-        serial.port = null;
-    }
-
-
-}
-
 serial.read = async function () {
-    serial.reading = true
-    while (serial.port?.readable && serial.reading) {
+    while (serial.port?.readable) {
+        serial.reading = true
         serial.reader = serial.port.readable.getReader()
         try {
             while (true) {
@@ -63,12 +46,14 @@ serial.read = async function () {
                 if (value) {
                     let hex = uint8ArrayToHexString(value)
                     serial.currentlyReceiving += hex
-                    console.log(hex)
-                    if (serial.updateSerialMonitor) {
+                    if (config.logAllSerial) {
+                        console.log('rx', hex)
+                    }
+                    if (config.updateSerialMonitor) {
                         serial.updateSerialMonitor()
                     }
                 } else {
-                    console.warn('no value ...')
+                    console.warn('no value read')
                 }
             }
         } catch (e) {
@@ -78,6 +63,22 @@ serial.read = async function () {
             serial.reader = null
         }
     }
+}
+
+serial.waitForResponse = async function () {
+    let previousCheckResponse = ''
+    let sameResponseCount = 0
+    await delay(config.serialMinWaitForResponse)
+    while (sameResponseCount < 3) {
+        await delay(config.serialResponseWaitCheck)
+        if (previousCheckResponse === serial.currentlyReceiving && serial.currentlyReceiving != '' && serial.currentlyReceiving != null) {
+            sameResponseCount ++
+        } else {
+            previousCheckResponse = serial.currentlyReceiving
+            sameResponseCount = 0
+        }
+    }
+    return previousCheckResponse
 }
 
 serial.write = async function (uint8Array) {
@@ -94,7 +95,11 @@ serial.write = async function (uint8Array) {
 
 }
 
-serial.send = function (hexString) {
+serial.send = async function (hexString) {
+    if (!serial.deviceConnected) {
+        console.error('can\'t send data\nno device connected', hexString)
+        return false
+    }
     let uint8 = hexStringToUint8Array(hexString)
     if (serial.currentlyReceiving !== '') {
         serial.history.push({dir: 'received', content: serial.currentlyReceiving})
@@ -102,15 +107,21 @@ serial.send = function (hexString) {
     }
     serial.history.push({dir: 'sent', content: hexString})
     serial.write(uint8)
-    if (serial.updateSerialMonitor) {
+    if (config.logAllSerial) {
+        console.log('tx', hexString)
+    }
+    if (config.updateSerialMonitor) {
         serial.updateSerialMonitor()
     }
+    return await serial.waitForResponse()
 }
 
 navigator.serial?.addEventListener('disconnect', (e) => {
     if (e.target === serial.port) {
         console.log('device unplugged')
         serial.reading = false
+        serial.deviceBusy = false
+        serial.deviceConnected = false
         serial.port = null
     }
 })
@@ -137,20 +148,11 @@ serial.clearHistory = function () {
 serial.updateSerialMonitor = function () {
     function renderMessage(message) {
         html = `<message class="${message.dir}">`
-        bytes = message.content.match(/.{1,2}/g) // divide string in couples 'aabb' -> ['aa','bb']
+        bytes = divideHexStringInBytes(message.content)
         for (let i = 0; i < bytes.length; i++) {
             const byte = bytes[i];
-            txt = uint8ArrayToTxt(hexStringToUint8Array(byte))
-            let special = false
-            // if is an enter character
-            if ((i != bytes.length-1 && byte == '0D' && bytes[i+1] == '0A') || (i != 0 && bytes[i-1] == '0D' && byte == '0A')) {
-                special = true
-            }
             html += `
-            <byte${ special ? ' class="special"' : '' }>
-                <div class="hex"> ${byte} </div>
-                <div class="txt"> ${txt} </div>
-            </byte>
+            <byte>${byte}</byte>
             `
         }
         html += '</message>'

@@ -17,3 +17,14 @@
 #define errUnknownOperation               0x02
 
 ```
+payload:
+send:
+    op, (start, start, offset)
+receive
+    status, (input, output)
+(send)
+    data
+(receive)
+    output
+receive
+    status

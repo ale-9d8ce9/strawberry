@@ -8,11 +8,6 @@
     <link rel="stylesheet" href="hexMonitor.css">
 </head>
 <body>
-    <div id="colors"></div>
-    <div id="ui">
-        <div id="controls">
-        </div>
-    </div>
     <hexMonitor>
         <div>
             <input type="text" placeholder="hex" id="hm-hex" onfocus="this.value = ''" oninput="document.getElementById('hm-int').value = parseInt(this.value, 16)">
@@ -20,7 +15,7 @@
         </div>
         <div>
             <button onclick="serial.clearHistory()">clear</button>
-            <button onclick="serial.resetDevice()">send reset</button>
+            <button onclick="serial.resetDevice()">reset device</button>
             <button onclick="serial.connect()">connect</button>
             <input type="text" id="inpt" placeholder="send to device">
             <button onclick="serial.send(document.getElementById('inpt').value);document.getElementById('inpt').value = ''">send</button>
@@ -30,8 +25,10 @@
     <script>
 
     </script>
+    <script src="config.js"></script>
     <script src="scripts.js"></script>
+    <script src="leds.js"></script>
     <script src="serial.js"></script>
-    <script src="generateColors.js"></script>
+    <script src="payloads.js"></script>
 </body>
 </html>

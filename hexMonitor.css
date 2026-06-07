@@ -32,9 +32,6 @@ hexMonitor {
             flex-direction: column;
         }
 
-        byte.special {
-            background-color: #096288;
-        }
     }
 
     .sent {
