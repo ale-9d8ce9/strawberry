@@ -3,7 +3,7 @@
 #include <FastLED.h>
 
 
-#define SERIAL_SPEED 9600
+#define SERIAL_SPEED 115200
 #define SERIAL_CONF SERIAL_8O1
 #define LED_PIN 6
 #define NUM_LEDS 64
@@ -25,6 +25,7 @@
 #define errRangeOutsideOfMemoryCapacity   0x01
 #define errUnknownOperation               0x02
 #define errArgsTooLong                    0x03
+#define errInvalidArgs                    0x04
 
 
 #define usb Serial
@@ -103,7 +104,7 @@ void executePayload() {
   bytecount = 0;
   msgLength = 0;
 
-  uint16_t start = arg1 << 8 + arg2;
+  uint16_t start = (arg1 << 8) | arg2;
   uint16_t end = start + arg3;
 
   if (rom.length() <= end) {
@@ -163,10 +164,11 @@ void handleSerial(uint8_t input) {
 }
 
 
+
 void printEeprom(uint16_t start, uint16_t end) {
   usb.write(0);
   usb.write(end-start);
-  for (uint16_t i = start; i <= end; i++) {
+  for (uint16_t i = start; i < end; i++) {
     byte val = rom.read(i);
     usb.write(val);
   }
@@ -176,7 +178,7 @@ void printEeprom(uint16_t start, uint16_t end) {
 void writeEeprom(uint16_t start, uint16_t end) {
   usb.write(end-start);
   usb.write(0);
-  for (uint16_t i = start; i <= end; i++) {
+  for (uint16_t i = start; i < end; i++) {
     waitForSerial();
     byte value = usb.read();
     rom.update(i, value);
@@ -184,7 +186,16 @@ void writeEeprom(uint16_t start, uint16_t end) {
   closeUsbMsgAllOk();
 }
 
+
 void showConnectedLogo(bool show) {
+  if (show != 0x00 && show != 0x01) {
+    error(errInvalidArgs);
+    return;
+  }
+  usb.write(0x00);
+  usb.write(0x01);
+  usb.write(connectedLogo);
   connectedLogo = show;
+  digitalWrite(13, 0);
   closeUsbMsgAllOk();
 }

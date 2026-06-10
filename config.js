@@ -1,5 +1,5 @@
 const config = {
-    serialSpeed: 9600,
+    serialSpeed: 115200,
     updateSerialMonitor: true,
     logAllSerial: false,
 
@@ -22,19 +22,22 @@ const defs = {
             code: '01',
             needsArgs: true,
             needsOtherData: false,
-            returnsData: true
+            returnsData: true,
+            argsLength: 3,
         },
         writeMemory: {
             code: '02',
             needsArgs: true,
             needsOtherData: true,
+            argsLength: 3,
             returnsData: false
         },
         showConnectedLogo: {
             code: '03',
             needsArgs: true,
             needsOtherData: false,
-            returnsData: false
+            argsLength: 1,
+            returnsData: true
         },
         hardReset: {
             code: '04',
@@ -53,6 +56,7 @@ const defs = {
         ['01','rangeOutsideOfMemoryCapacity'],
         ['02','unknownOperation'],
         ['03','ArgsTooLong'],
+        ['04','InvalidArgs'],
     ]),
     dataTypes: ['8b','6b','4b','3bc']
 }

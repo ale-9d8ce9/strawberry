@@ -30,7 +30,7 @@ function divideHexStringInBytes(hexString) {  // divide string in couples 'aabb'
 }
 
 function intToHex(int) {
-    return parseInt(int).toString(16).toLocaleUpperCase()
+    return parseInt(int).toString(16).toLocaleUpperCase().padStart(2,'0')
 }
 function hexToInt(hex) {
     return parseInt(hex, 16)
