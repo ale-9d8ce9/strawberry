@@ -1,0 +1,48 @@
+errorPopup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    background-color: #3e0909;
+    padding: var(--ui-view-border-padding);
+    animation:
+        errorShow 1s ease,
+        errorMove 1s ease-in-out infinite 1s;
+}
+errorPopup:hover {
+    animation-play-state: paused;
+}
+
+@keyframes errorShow {
+    0%, 100% {
+        translate: -40% -50%;
+    }
+    50% {
+        translate: -60% -50%;
+    }
+}
+
+
+@keyframes errorMove {
+    0%, 50%, 100% {
+        translate: -50% -50%;
+    }
+    25% {
+        translate: -70% -50%;
+    }
+    75% {
+        translate: -30% -50%;
+    }
+    13% {
+        translate: -60% -70%;
+    }
+    37% {
+        translate: -60% -30%;
+    }
+    63% {
+        translate: -40% -70%;
+    }
+    87% {
+        translate: -40% -30%;
+    }
+}
