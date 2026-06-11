@@ -22,6 +22,7 @@ async function delay(ms) {
     })
 }
 
+
 function divideHexStringInBytes(hexString) {  // divide string in couples 'aabb' -> ['aa','bb']
     if (hexString.length % 2 == 1) {
         console.error('hex string seems corrupted', hexString)
@@ -35,3 +36,40 @@ function intToHex(int) {
 function hexToInt(hex) {
     return parseInt(hex, 16)
 }
+
+
+
+function diviteTouchTargetInGrid(e, sizeX, sizeY, target) { // takes an event and returns in which grid section of the target element the event happened
+    if (target === undefined) {
+        target = e.target
+    }
+    const size = target.getBoundingClientRect()
+    const offsetX = e.x - size.left
+    const offsetY = e.y - size.top
+    const x = offsetX / size.width * sizeX 
+    const y = offsetY / size.height * sizeY
+    return {
+        x: parseInt(x),
+        y: parseInt(y)
+    }
+}
+
+
+
+
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img)
+        img.onerror = reject
+        img.src = src
+    })
+}
+
+
+
+async function start() {
+    await leds.init()
+    
+}
+window.onload = start

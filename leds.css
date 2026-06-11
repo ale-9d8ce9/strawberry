@@ -1,0 +1,25 @@
+page {
+    position: fixed;
+    inset: 0;
+    /* z-index: 10; */
+}
+#leds {
+    display: grid;
+    height: 100%;
+    background-color: #47a46660;
+    grid-template-columns: repeat(8, auto);
+    aspect-ratio: 1/1;
+}
+
+
+#picker {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 15rem;
+    image-rendering: pixelated;
+}
+
+led {
+    scale: .7;
+}

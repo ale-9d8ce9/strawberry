@@ -6,21 +6,28 @@
     <title>strawberry</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="hexMonitor.css">
+    <link rel="stylesheet" href="leds.css">
     <link rel="stylesheet" href="error.css">
     <link rel="stylesheet" href="theme.css">
 </head>
 <body>
+    <page>
+        <leds id="leds"></leds>
+        <canvas id="picker">
+    </page>
     <hexMonitor>
         <div>
-            <input type="text" placeholder="hex" id="hm-hex" onfocus="this.value = ''" oninput="document.getElementById('hm-int').value = parseInt(this.value, 16)">
-            <input type="text" placeholder="int" id="hm-int" onfocus="this.value = ''" oninput="document.getElementById('hm-hex').value = parseInt(this.value).toString(16)">
-        </div>
-        <div>
-            <button onclick="serial.clearHistory()">clear</button>
-            <button onclick="serial.resetDevice()">reset device</button>
-            <button onclick="serial.connect()">connect</button>
-            <input type="text" id="inpt" placeholder="send to device">
-            <button onclick="serial.send(document.getElementById('inpt').value);document.getElementById('inpt').value = ''">send</button>
+            <div>
+                <input type="text" placeholder="hex" id="hm-hex" onfocus="this.value = ''" oninput="document.getElementById('hm-int').value = parseInt(this.value, 16)">
+                <input type="text" placeholder="int" id="hm-int" onfocus="this.value = ''" oninput="document.getElementById('hm-hex').value = parseInt(this.value).toString(16)">
+            </div>
+            <div>
+                <button onclick="serial.clearHistory()">clear</button>
+                <button onclick="serial.resetDevice()">reset device</button>
+                <button onclick="serial.connect()">connect</button>
+                <input type="text" id="inpt" placeholder="send to device">
+                <button onclick="serial.send(document.getElementById('inpt').value);document.getElementById('inpt').value = ''">send</button>
+            </div>
         </div>
         <div id="hexMonitor-content"></div>
     </hexMonitor>
