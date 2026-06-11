@@ -56,6 +56,22 @@ function diviteTouchTargetInGrid(e, sizeX, sizeY, target) { // takes an event an
 
 
 
+// i know it's terrible and i dont care, it's only to move the dev tools around during development
+function moveWindow(e, id) {
+    if (e.buttons !== 1) {
+        return
+    }
+    document.getElementsByClassName('window')[id].style.top = (parseInt(document.getElementsByClassName('window')[id].style.top)+e.movementY) +'px'
+    document.getElementsByClassName('window')[id].style.left = (parseInt(document.getElementsByClassName('window')[id].style.left)+e.movementX) +'px'
+}
+document.getElementsByClassName('window-handle')[0].addEventListener('mousemove', (e) => {
+    moveWindow(e, 0)
+})
+document.getElementsByClassName('window-handle')[1].addEventListener('mousemove', (e) => {
+    moveWindow(e, 1)
+})
+
+
 
 function loadImage(src) {
     return new Promise((resolve, reject) => {
@@ -67,9 +83,7 @@ function loadImage(src) {
 }
 
 
-
 async function start() {
     await leds.init()
-    
 }
 window.onload = start

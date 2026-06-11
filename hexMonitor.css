@@ -1,11 +1,14 @@
 hexMonitor {
     position: fixed;
-    right: 0;
+    left: 0;
     top: 0;
-    width: 40rem;
+    max-width: 30rem;
+    min-width: 15rem;
+    min-height: 5rem;
+    max-height: 95%;
     display: inline-block;
-    max-height: 100%;
-    background-color: #161616;
+    background-color: #22222227;
+    overflow: scroll;
 
     input, button {
         padding: .2rem .4rem;
@@ -13,14 +16,15 @@ hexMonitor {
     }
     >div:nth-child(1) {
         position: sticky;
+        padding: .5rem;
         top: 0;
+        backdrop-filter: blur(2rem);
     }
-    overflow: scroll;
 }
 
 #hexMonitor-content {
+    background-color: #000000;
     color: white;
-    background-color: #000;
     max-width: 40rem;
     message {
         display: grid;
@@ -37,10 +41,9 @@ hexMonitor {
     }
 
     .sent {
-        background-color: #503d06;
+        background-color: #7a6114;
     }
     .received {
-        background-color: #043c10;
+        background-color: #108028;
     }
-    resize: both;
 }

@@ -168,5 +168,5 @@ serial.updateSerialMonitor = function () {
     }
 
     document.getElementById('hexMonitor-content').innerHTML = html
-    document.getElementById('hexMonitor-content').scrollTop = document.getElementById('hexMonitor-content').scrollHeight
+    document.querySelector('hexMonitor').scrollTop = document.querySelector('hexMonitor').scrollHeight
 }

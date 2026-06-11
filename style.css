@@ -16,3 +16,7 @@ body {
 
 
 
+.window {
+    backdrop-filter: blur(8px);
+    resize: both;
+}

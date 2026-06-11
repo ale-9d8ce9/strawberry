@@ -15,8 +15,8 @@
         <leds id="leds"></leds>
         <canvas id="picker">
     </page>
-    <hexMonitor>
-        <div>
+    <hexMonitor class="window" style="top:0;left:0">
+        <div class="window-handle">
             <div>
                 <input type="text" placeholder="hex" id="hm-hex" onfocus="this.value = ''" oninput="document.getElementById('hm-int').value = parseInt(this.value, 16)">
                 <input type="text" placeholder="int" id="hm-int" onfocus="this.value = ''" oninput="document.getElementById('hm-hex').value = parseInt(this.value).toString(16)">
@@ -31,7 +31,8 @@
         </div>
         <div id="hexMonitor-content"></div>
     </hexMonitor>
-    <errorPopup>
+    <div class="window-handle"></div>
+    <errorPopup hidden>
         <text class="title">Error</text>
     </errorPopup>
     <script>
