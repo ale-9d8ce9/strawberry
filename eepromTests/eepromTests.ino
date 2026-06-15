@@ -1,4 +1,4 @@
-#include <avr/wdt.h> // Watchdog Timer library
+//#include <avr/wdt.h> // Watchdog Timer library
 #include <EEPROM.h>
 #include <FastLED.h>
 
@@ -37,7 +37,7 @@ void (*softReset)(void) = 0; // soft reboot
 void hardReset() {
   usb.write(stsAllOk);
   usb.write(stsWait);
-  wdt_enable(WDTO_15MS);
+//  wdt_enable(WDTO_15MS);
   while (1) {}
 }
 
@@ -166,7 +166,7 @@ void handleSerial(uint8_t input) {
 
 
 void printEeprom(uint16_t start, uint16_t end) {
-  usb.write(0);
+  usb.write((uint8_t)0);
   usb.write(end-start);
   for (uint16_t i = start; i < end; i++) {
     byte val = rom.read(i);
@@ -177,7 +177,7 @@ void printEeprom(uint16_t start, uint16_t end) {
 
 void writeEeprom(uint16_t start, uint16_t end) {
   usb.write(end-start);
-  usb.write(0);
+  usb.write((uint8_t)0);
   for (uint16_t i = start; i < end; i++) {
     waitForSerial();
     byte value = usb.read();
@@ -192,7 +192,7 @@ void showConnectedLogo(bool show) {
     error(errInvalidArgs);
     return;
   }
-  usb.write(0x00);
+  usb.write((uint8_t)0x00);
   usb.write(0x01);
   usb.write(connectedLogo);
   connectedLogo = show;

@@ -84,6 +84,10 @@ function loadImage(src) {
 
 
 async function start() {
+    payloads.initMonitor()
     await leds.init()
+
+    document.documentElement.style.setProperty('--transition-normal',config.transitionSpeed.normal+'s')
+    document.documentElement.style.setProperty('--transition-ledsRotation',config.transitionSpeed.ledsRotation+'s')
 }
 window.onload = start

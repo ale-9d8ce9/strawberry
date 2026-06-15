@@ -3,6 +3,11 @@ const config = {
     updateSerialMonitor: true,
     logAllSerial: false,
 
+    transitionSpeed: {
+        normal: 0.3,
+        ledsRotation: 1
+    },
+
     serialMinWaitForResponse: 25,
     serialResponseWaitCheck: 25
 }

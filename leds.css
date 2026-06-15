@@ -1,3 +1,8 @@
+@property --leds-rotation {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
 page {
     position: fixed;
     inset: 0;
@@ -6,20 +11,31 @@ page {
 #leds {
     display: grid;
     height: 100%;
-    background-color: #47a46660;
     grid-template-columns: repeat(8, auto);
     aspect-ratio: 1/1;
+    rotate: var(--leds-rotation);
+    transition: var(--transition-ledsRotation);
+    outline: .1rem dashed green;
+}
+led {
+    transition: var(--transition-ledsRotation), background-color 0s;
+    rotate: calc(var(--leds-rotation) * -1);
+    scale: .7;
+    border-radius: 1rem;
 }
 
-
+@keyframes shrink {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.7);
+    }
+}
 #picker {
     position: fixed;
     top: 0;
     right: 0;
     width: 15rem;
     image-rendering: pixelated;
-}
-
-led {
-    scale: .7;
 }

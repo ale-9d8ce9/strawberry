@@ -6,6 +6,7 @@
     <title>strawberry</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="hexMonitor.css">
+    <link rel="stylesheet" href="payloadMonitor.css">
     <link rel="stylesheet" href="leds.css">
     <link rel="stylesheet" href="error.css">
     <link rel="stylesheet" href="theme.css">
@@ -15,7 +16,7 @@
         <leds id="leds"></leds>
         <canvas id="picker">
     </page>
-    <hexMonitor class="window" style="top:0;left:0">
+    <hexMonitor class="window" style="top:10px;left:10px">
         <div class="window-handle">
             <div>
                 <input type="text" placeholder="hex" id="hm-hex" onfocus="this.value = ''" oninput="document.getElementById('hm-int').value = parseInt(this.value, 16)">
@@ -31,15 +32,21 @@
         </div>
         <div id="hexMonitor-content"></div>
     </hexMonitor>
-    <div class="window-handle"></div>
+    <payloadMonitor class="window" style="top: 100px; left: 100px;">
+        <div class="window-handle">
+            <select id="pm-operation" onchange="payloads.updatePMInputs(this.value)"></select>
+            <input type="text" id="pm-args" placeholder="args"><br>
+            <textarea id="pm-otherData" onmousemove="event.stopPropagation()"></textarea>
+            <button onclick="payloads.runPMInputs()">run</button>
+        </div>
+        <
+    </payloadMonitor>
     <errorPopup hidden>
         <text class="title">Error</text>
     </errorPopup>
-    <script>
-
-    </script>
     <script src="config.js"></script>
     <script src="scripts.js"></script>
+    <script src="animations.js"></script>
     <script src="leds.js"></script>
     <script src="serial.js"></script>
     <script src="payloads.js"></script>

@@ -10,6 +10,8 @@ class Project {
         this.colorConfig = defs.colorConfigs.get(this.dataType)
         this.colors = this.colorConfig.colors
         this.frames = []
+        this.rotation = 0
+        this.rotate()
         this.addFrame()
         this.updateColorPicker()
     }
@@ -51,6 +53,20 @@ class Project {
     paint(pos) {
         this.frames[this.selectedFrame].leds[pos.y][pos.x] = this.selectedColor
         this.frames[this.selectedFrame].render()
+    }
+    rotate(angle = 0) {
+        if (angle == this.rotation) {
+            return
+        }
+        if (![0,90,180,270].includes(angle)) {
+            console.error('invalid rotation', angle)
+            alert('invalid rotation '+ angle)
+            return
+        }
+
+        this.rotation = angle
+        document.documentElement.style.setProperty('--leds-rotation',`${angle}deg`)
+        animations.play( document.getElementById('leds'), 'shrink', config.transitionSpeed.ledsRotation)
     }
 }
 

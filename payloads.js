@@ -3,6 +3,7 @@ class Payload {
         this.op = args.operation
         args.args ? this.args = args.args : undefined
         args.otherData ? this.otherData = args.otherData : undefined
+        this.history = {send: args}
     }
     
     async check() {
@@ -150,9 +151,11 @@ class Payload {
         let response = divideHexStringInBytes(await serial.send(dataToSend))
 
         let result = await this.checkResponse(response)
+        this.history.response1 = result
 
         if (result.reset) { // if reset happened stop payload, even if it needs other data
             serial.deviceBusy = false
+            payloads.history.push(this.history)
             return result
         }
 
@@ -168,15 +171,17 @@ class Payload {
                 response = await serial.send(this.otherData)
                 result = await this.checkResponse(response, true)
             }
+            this.history.response2 = result
         }
 
         serial.deviceBusy = false
+        payloads.history.push(this.history)
         return result
     }
 }
 
 
-payloads = {}
+payloads = {history:[]}
 
 payloads.readMemory = async function (start, offset) {
     let args = intToHex(start).padStart(4,'0')
@@ -230,4 +235,28 @@ payloads.hardReset = async function () {
     })
     let response = await p.execute()
     return response
+}
+
+
+payloads.initMonitor = function () {
+    for (let i = 0; i < Object.keys(defs.operations).length; i++) {
+        const payloadName = Object.keys(defs.operations)[i];
+         document.getElementById('pm-operation').innerHTML += `<option value="${payloadName}">${payloadName}</option>`
+    }
+    document.getElementById('pm-operation').onchange()
+}
+payloads.updatePMInputs = function (operation) {
+    let op = defs.operations[operation]
+    document.getElementById('pm-args').hidden = !op.needsArgs
+    document.getElementById('pm-otherData').hidden = !op.needsOtherData
+}
+payloads.runPMInputs = function () {
+    let op = defs.operations[document.getElementById('pm-operation').value]
+    let payloadArg = {
+        operation: document.getElementById('pm-operation').value
+    }
+    op.needsArgs ? payloadArg.args = document.getElementById('pm-args').value : undefined
+    op.needsOtherData ? payloadArg.otherData = document.getElementById('pm-otherData').value : undefined
+    let p = new Payload(payloadArg)
+    p.execute()
 }
