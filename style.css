@@ -13,8 +13,22 @@ body {
     background-color: #15022c;
 }
 
+page {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: row;
+}
 
-
+.icon {
+    aspect-ratio: 1;
+    width: var(--icon-size);
+    height: var(--icon-size);
+    user-select: none;
+}
+button:has(.icon) {
+    background-color: transparent;
+}
 
 .window {
     backdrop-filter: blur(2rem);

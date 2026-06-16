@@ -3,11 +3,19 @@
   inherits: true;
   initial-value: 0deg;
 }
-page {
-    position: fixed;
-    inset: 0;
-    /* z-index: 10; */
+
+#frames {
+    overflow: scroll;
+    display: flex;
+    max-height: 100%;
+    flex-direction: column;
 }
+.frame {
+    color: white;
+    aspect-ratio: 1/1;
+}
+
+
 #leds {
     display: grid;
     height: 100%;
@@ -22,6 +30,9 @@ led {
     rotate: calc(var(--leds-rotation) * -1);
     scale: .7;
     border-radius: 1rem;
+}
+#leds[funnyAnimation] > led {
+    sibling-index()
 }
 
 @keyframes shrink {

@@ -26,6 +26,23 @@ class Project {
             })
         }
         this.frames.push(nframe)
+        // update frames sidebar
+        let html = ''
+        for (let i = 0; i < this.frames.length; i++) {
+            const frame = this.frames[i];
+            html += `<div class="frame" onclick="project.selectFrame(${i})">${i}</div>`
+        }
+        html += `<button id="addFrame" onclick="project.addFrame()"><img class="icon" src="icons/add.svg"></button>`
+        document.getElementById('frames').innerHTML = html
+    }
+
+    selectFrame(nframe) {
+        if (nframe >= this.frames.length) {
+            console.error('frame index outside of list')
+            return
+        }
+        this.selectedFrame = nframe
+        this.frames[this.selectedFrame].render()
     }
 
     updateColorPicker() {
@@ -45,14 +62,13 @@ class Project {
 
         document.getElementById('picker').addEventListener('click', (e) => {
             const pos = diviteTouchTargetInGrid(e, 8, 8)
-            leds.currentProject.selectedColor = pos.y * 8 + pos.x
-            console.log(leds.currentProject.selectedColor)
+            project.selectedColor = pos.y * 8 + pos.x
         })
     }
 
     paint(pos) {
         this.frames[this.selectedFrame].leds[pos.y][pos.x] = this.selectedColor
-        this.frames[this.selectedFrame].render()
+        this.frames[this.selectedFrame].renderPixel(pos.y,pos.x)
     }
     rotate(angle = 0) {
         if (angle == this.rotation) {
@@ -89,12 +105,16 @@ class Frame {
             [0,0,0,0, 0,0,0,0]
         ]
     }
+
+    renderPixel(row, col) {
+        const colorIndex = this.leds[row][col];
+        let ledIndex = row * this.leds[row].length + col
+        document.getElementsByClassName('led')[ledIndex].style.backgroundColor = project.colors[colorIndex]
+    }
     render() {
         for (let row = 0; row < this.leds.length; row++) {
             for (let col = 0; col < this.leds[row].length; col++) {
-                const colorIndex = this.leds[row][col];
-                let ledIndex = row * this.leds[row].length + col
-                document.getElementsByClassName('led')[ledIndex].style.backgroundColor = leds.currentProject.colors[colorIndex]
+                this.renderPixel(row, col)
             }        
         }
     }
@@ -141,17 +161,18 @@ class Frame {
 
 
 leds = {}
+project = null
 
 document.getElementById('leds').addEventListener('mousemove', (e) => {
     if (e.buttons !== 1) {
         return
     }
     const pos = diviteTouchTargetInGrid(e, 8, 8, document.getElementById('leds'))
-    leds.currentProject.paint(pos)
+    project.paint(pos)
 })
 document.getElementById('leds').addEventListener('mousedown', (e) => {
     const pos = diviteTouchTargetInGrid(e, 8, 8, document.getElementById('leds'))
-    leds.currentProject.paint(pos)
+    project.paint(pos)
 })
 
 
@@ -162,8 +183,8 @@ leds.init = async function () {
     }
     document.getElementById('leds').innerHTML = html
 
-    leds.currentProject = new Project({
+    project = new Project({
         dataType: '8b'
     })
-    leds.currentProject.frames[0].render()
+    project.frames[0].render()
 }

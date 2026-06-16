@@ -13,10 +13,12 @@
 </head>
 <body>
     <page>
+        <frames id="frames">
+        </frames>
         <leds id="leds"></leds>
         <canvas id="picker">
     </page>
-    <hexMonitor class="window" style="top:10px;left:10px">
+    <hexMonitor class="window" style="top:100px;left:200px">
         <div class="window-handle">
             <div>
                 <input type="text" placeholder="hex" id="hm-hex" onfocus="this.value = ''" oninput="document.getElementById('hm-int').value = parseInt(this.value, 16)">
