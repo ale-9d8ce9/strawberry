@@ -25,14 +25,33 @@
     transition: var(--transition-ledsRotation);
     outline: .1rem dashed green;
 }
+@property --translate-x {
+    syntax: "<length-percentage>";
+    inherits: true;
+    initial-value: 0%;
+}
+@property --translate-y {
+    syntax: "<length-percentage>";
+    inherits: true;
+    initial-value: 0%;
+}
 led {
-    transition: var(--transition-ledsRotation), background-color 0s;
+    --translate-x: 0%;
+    --translate-y: 0%;
+    transition:
+        all var(--transition-ledsRotation),
+        background-color 0s;
     rotate: calc(var(--leds-rotation) * -1);
     scale: .7;
     border-radius: 1rem;
+    translate: var(--translate-x) var(--translate-y);
 }
-#leds[funnyAnimation] > led {
-    sibling-index()
+#leds[funAnimation] > led {
+    transition: all var(--transition-ledsRotation);
+    animation: 
+        topBottom 2s infinite,
+        leftRight 2s infinite,
+        rotate 2s infinite;
 }
 
 @keyframes shrink {
@@ -43,6 +62,56 @@ led {
         transform: scale(0.7);
     }
 }
+
+@keyframes topBottom {
+    25% {
+        --translate-y: -25%;
+    }
+    75% {
+        --translate-y: 25%;
+    }
+}
+@keyframes leftRight {
+    25% {
+        --translate-x: -25%;
+    }
+    50% {
+        --translate-x: 25%;
+    }
+}
+@keyframes rotate {
+    25% {
+        border-radius: 1rem;
+        rotate: 0deg;
+    }
+    32% {
+        rotate: 360deg;
+        border-radius: 50%;
+    }
+    39% {
+        border-radius: 1rem;
+    }
+    69% {
+        rotate: 0deg;
+    }
+}
+
+#leds[checkbox] {
+    led {
+        background-color: transparent !important;
+    }
+    led:nth-child(23),
+    led:nth-child(26),
+    led:nth-child(30),
+    led:nth-child(35),
+    led:nth-child(37),
+    led:nth-child(44) {
+        background-color: #14b72c !important;
+        scale: 1;
+        animation: none;
+    }
+}
+
 #picker {
     position: fixed;
     top: 0;

@@ -9,11 +9,13 @@ class Project {
         this.selectedFrame = 0
         this.colorConfig = defs.colorConfigs.get(this.dataType)
         this.colors = this.colorConfig.colors
-        this.frames = []
+
         this.rotation = 0
-        this.rotate()
-        this.addFrame()
+        document.documentElement.style.setProperty('--leds-rotation',`0deg`)
+
         this.updateColorPicker()
+
+        this.frames = []
     }
 
     addFrame(frame) {
@@ -34,6 +36,7 @@ class Project {
         }
         html += `<button id="addFrame" onclick="project.addFrame()"><img class="icon" src="icons/add.svg"></button>`
         document.getElementById('frames').innerHTML = html
+        this.selectFrame(this.frames.length -1)
     }
 
     selectFrame(nframe) {
@@ -176,15 +179,25 @@ document.getElementById('leds').addEventListener('mousedown', (e) => {
 })
 
 
-leds.init = async function () {
+leds.init = function () {
     let html = ''
     for (let i = 0; i < 64; i++) {
-        html += '<led class="led"></led>'
+        html += `<led class="led" style="
+            animation-delay:
+                ${(Math.random()*8+i)/10}s,
+                ${(Math.random()*8+i)/10}s,
+                ${(Math.random()*16+i)/15}s;
+            animation-duration:
+                ${(Math.random()*4+1)*2}s,
+                ${(Math.random()*4+1)*5}s,
+                ${(Math.random()*4+1)*12}s;
+
+            "></led>`
     }
     document.getElementById('leds').innerHTML = html
 
     project = new Project({
         dataType: '8b'
     })
-    project.frames[0].render()
+    project.addFrame()
 }
