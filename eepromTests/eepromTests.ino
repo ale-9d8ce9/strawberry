@@ -16,11 +16,11 @@
 #define stsFatalError     0xFE
 #define stsExecuting      0xE0
 
-#define opReadMemory    0x01 // (16 start, 8 offset)
-#define opWriteMemory   0x02 // (16 start, 8 offset) + n data
-#define opShowConnectedLogo 0x03 // (8 start [bool], 16 any)
-#define opHardReset     0x04 // no args
-#define opSoftReset     0x05 // no args
+#define opReadMemory    0x31 // (16 start, 8 offset)
+#define opWriteMemory   0x32 // (16 start, 8 offset) + n data
+#define opShowConnectedLogo 0x11 // (8 bool)
+#define opHardReset     0x02 // no args
+#define opSoftReset     0x01 // no args
 
 #define errRangeOutsideOfMemoryCapacity   0x01
 #define errUnknownOperation               0x02

@@ -32,6 +32,7 @@ serial.connect = async function () {
     } catch (e) {
         console.error('error connecting:',e)
     }
+    serial.updateButtons()
 }
 
 serial.read = async function () {
@@ -124,6 +125,7 @@ navigator.serial?.addEventListener('disconnect', (e) => {
         serial.deviceConnected = false
         serial.port = null
     }
+    serial.updateButtons()
 })
 
 serial.resetDevice = async function () {
@@ -144,6 +146,7 @@ serial.clearHistory = function () {
     serial.updateSerialMonitor()
     console.log('serial history cleared')
 }
+
 
 serial.updateSerialMonitor = function () {
     function renderMessage(message) {
@@ -169,4 +172,8 @@ serial.updateSerialMonitor = function () {
 
     document.getElementById('hexMonitor-content').innerHTML = html
     document.querySelector('hexMonitor').scrollTop = document.querySelector('hexMonitor').scrollHeight
+}
+
+serial.updateButtons = function () {
+    document.getElementById('connect-btn').hidden = serial.deviceConnected
 }

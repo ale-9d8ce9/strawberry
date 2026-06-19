@@ -45,6 +45,8 @@ class Project {
             return
         }
         this.selectedFrame = nframe
+        document.querySelector('.frame.selected')?.classList.remove('selected')
+        document.getElementsByClassName('frame')[this.selectedFrame].classList.add('selected')
         this.frames[this.selectedFrame].render()
     }
 

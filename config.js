@@ -24,34 +24,34 @@ const defs = {
     },
     operations: {
         readMemory: {
-            code: '01',
+            code: '31',
             needsArgs: true,
             needsOtherData: false,
             returnsData: true,
             argsLength: 3,
         },
         writeMemory: {
-            code: '02',
+            code: '32',
             needsArgs: true,
             needsOtherData: true,
             argsLength: 3,
             returnsData: false
         },
         showConnectedLogo: {
-            code: '03',
+            code: '11',
             needsArgs: true,
             needsOtherData: false,
             argsLength: 1,
             returnsData: true
         },
         hardReset: {
-            code: '04',
+            code: '02',
             needsArgs: false,
             needsOtherData: false,
             returnsData: false
         },
         softReset: {
-            code: '05',
+            code: '01',
             needsArgs: false,
             needsOtherData: false,
             returnsData: false

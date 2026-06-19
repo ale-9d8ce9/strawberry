@@ -1,4 +1,9 @@
 :root {
     --ui-view-border-padding: 1rem;
     --icon-size: 2rem;
+
+    --frames-width: 2rem;
+    --controls-width: 15rem;
+
+    --leds-max-w: calc(100vw - var(--controls-width) - var(--frames-width))
 }

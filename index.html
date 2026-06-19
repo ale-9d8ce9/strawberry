@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="hexMonitor.css">
     <link rel="stylesheet" href="payloadMonitor.css">
     <link rel="stylesheet" href="leds.css">
+    <link rel="stylesheet" href="controls.css">
     <link rel="stylesheet" href="error.css">
     <link rel="stylesheet" href="theme.css">
 </head>
@@ -15,8 +16,12 @@
     <page>
         <frames id="frames">
         </frames>
-        <leds id="leds" funanimation></leds>
-        <canvas id="picker">
+        <leds id="leds"></leds>
+        <controls>
+            <canvas id="picker"></canvas>
+            <div id="selectedColor"></div>
+            <button onclick="serial.connect()" id="connect-btn">connect</button>
+        </controls>
     </page>
     <hexMonitor class="window" style="top:100px;left:200px">
         <div class="window-handle">

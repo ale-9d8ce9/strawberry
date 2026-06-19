@@ -1,14 +1,9 @@
-@property --leds-rotation {
-  syntax: "<angle>";
-  inherits: true;
-  initial-value: 0deg;
-}
-
 #frames {
     overflow: scroll;
     display: flex;
     max-height: 100%;
     flex-direction: column;
+    width: var(--frames-width);
 }
 .frame {
     color: white;
@@ -18,13 +13,24 @@
 
 #leds {
     display: grid;
-    height: 100%;
+    height: min(var(--leds-max-w), 100vh);
     grid-template-columns: repeat(8, auto);
     aspect-ratio: 1/1;
     rotate: var(--leds-rotation);
-    transition: var(--transition-ledsRotation);
+    transition:
+        var(--transition-ledsRotation),
+        height var(--transition-normal);
     outline: .1rem dashed green;
+    margin: auto;
 }
+@property --leds-rotation {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+
+
 @property --translate-x {
     syntax: "<length-percentage>";
     inherits: true;
@@ -112,10 +118,9 @@ led {
     }
 }
 
+
+
 #picker {
-    position: fixed;
-    top: 0;
-    right: 0;
     width: 15rem;
     image-rendering: pixelated;
 }
