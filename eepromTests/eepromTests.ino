@@ -1,4 +1,4 @@
-//#include <avr/wdt.h> // Watchdog Timer library
+#include <avr/wdt.h> // Watchdog Timer library
 #include <EEPROM.h>
 #include <FastLED.h>
 
@@ -28,27 +28,9 @@
 #define errInvalidArgs                    0x04
 
 
-#define usb Serial
 #define rom EEPROM
+#define usb Serial
 
-
-void (*softReset)(void) = 0; // soft reboot
-// full reboot
-void hardReset() {
-  usb.write(stsAllOk);
-  usb.write(stsWait);
-//  wdt_enable(WDTO_15MS);
-  while (1) {}
-}
-
-
-void waitForSerial() {
-  while (usb.available() == 0) {}
-}
-void closeUsbMsgAllOk() {
-  usb.write(stsAllOk);
-  usb.write(stsReady);
-}
 
 uint8_t op = 0;
 uint8_t arg1 = 0;
@@ -61,6 +43,8 @@ uint16_t msgLength = 0;
 bool connectedLogo = false;
 
 CRGB leds[NUM_LEDS];
+
+
 
 void setup() {
   usb.begin(SERIAL_SPEED, SERIAL_CONF);
@@ -76,6 +60,8 @@ void setup() {
 
 void loop() {
   while (usb.available()) {
+    //usb.write(usb.read());
+    
     handleSerial(usb.read());
     bytecount++;
     if (msgLength != 0 && bytecount == msgLength) {
@@ -87,6 +73,29 @@ void loop() {
     digitalWrite(13, !digitalRead(13));
   }
 }
+
+
+void (*softReset)(void) = 0; // soft reboot
+// full reboot
+void hardReset() {
+  usb.write(stsExecuting);
+  usb.write(op);
+  usb.write(stsAllOk);
+  usb.write(stsWait);
+  wdt_enable(WDTO_15MS);
+  while (1) {}
+}
+
+
+void waitForSerial() {
+  while (usb.available() == 0) {}
+}
+void closeUsbMsgAllOk() {
+  usb.write(stsAllOk);
+  usb.write(stsReady);
+}
+
+
 
 void error(uint8_t code) {
   usb.write(stsError);
@@ -100,53 +109,43 @@ void fatalError(uint8_t code) {
 }
 
 
+
 void executePayload() {
   bytecount = 0;
   msgLength = 0;
 
-  uint16_t start = (arg1 << 8) | arg2;
-  uint16_t end = start + arg3;
-
-  if (rom.length() <= end) {
-    fatalError(errRangeOutsideOfMemoryCapacity);
-    return;
+  switch (op) {
+    case opHardReset:
+      hardReset();
+      break;
+    case opSoftReset:
+      softReset();
+      break;
+    case opShowConnectedLogo:
+      showConnectedLogo();
+      break;
+    case opReadMemory:
+      readMemory();
+      break;
+    case opWriteMemory:
+      writeMemory();
+      break;
+    default:
+      fatalError(errUnknownOperation);
+      break;
   }
-
-  usb.write(stsExecuting);
-  usb.write(op);
-
-  if (op == opReadMemory) {
-    printEeprom(start, end);
-    return;
-  }
-  if (op == opWriteMemory) {
-    writeEeprom(start, end);
-    return;
-  }
-  if (op == opSoftReset) {
-    usb.write(stsAllOk);
-    usb.write(stsWait);
-    softReset();
-    return;
-  }
-  if (op == opHardReset) {
-    hardReset();
-    return;
-  }
-  if (op == opShowConnectedLogo) {
-    showConnectedLogo(arg1);
-    return;
-  }
+  //usb.write(0xfa);
+  //usb.write(arg1);
+  //usb.write(arg2);
+  //usb.write(arg3);
+  //usb.write(0xfa);
 }
 
 void handleSerial(uint8_t input) {
   switch (bytecount) {
     case 0:
       op = input;
-      msgLength = 1;
-      if (op < opHardReset) {
-        msgLength = 4;
-      }
+      msgLength = 4;
       break;
     case 1:
       arg1 = input;
@@ -165,7 +164,16 @@ void handleSerial(uint8_t input) {
 
 
 
-void printEeprom(uint16_t start, uint16_t end) {
+void readMemory() {
+  uint16_t start = arg1 << 8 + arg2;
+  uint16_t end = start + arg3;
+
+  if (rom.length() <= end) {
+    fatalError(errRangeOutsideOfMemoryCapacity);
+    return;
+  }
+  usb.write(stsExecuting);
+  usb.write(op);
   usb.write((uint8_t)0);
   usb.write(end-start);
   for (uint16_t i = start; i < end; i++) {
@@ -175,7 +183,16 @@ void printEeprom(uint16_t start, uint16_t end) {
   closeUsbMsgAllOk();
 }
 
-void writeEeprom(uint16_t start, uint16_t end) {
+void writeMemory() {
+  uint16_t start = arg1 << 8 + arg2;
+  uint16_t end = start + arg3;
+
+  if (rom.length() <= end) {
+    fatalError(errRangeOutsideOfMemoryCapacity);
+    return;
+  }
+  usb.write(stsExecuting);
+  usb.write(op);
   usb.write(end-start);
   usb.write((uint8_t)0);
   for (uint16_t i = start; i < end; i++) {
@@ -187,15 +204,19 @@ void writeEeprom(uint16_t start, uint16_t end) {
 }
 
 
-void showConnectedLogo(bool show) {
+void showConnectedLogo() {
+  uint8_t show = arg1;
   if (show != 0x00 && show != 0x01) {
     error(errInvalidArgs);
     return;
   }
-  usb.write((uint8_t)0x00);
+  usb.write(stsExecuting);
+  usb.write(op);
+  usb.write(0x00);
   usb.write(0x01);
   usb.write(connectedLogo);
   connectedLogo = show;
   digitalWrite(13, 0);
   closeUsbMsgAllOk();
 }
+

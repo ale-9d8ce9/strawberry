@@ -6,8 +6,13 @@
     width: var(--frames-width);
 }
 .frame {
-    color: white;
     aspect-ratio: 1/1;
+
+    canvas {
+        width: var(--frames-width);
+        aspect-ratio: 1/1;
+        image-rendering: pixelated;
+    }
 }
 
 

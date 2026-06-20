@@ -19,3 +19,7 @@ async function getPixels(src) {
     }
     return colors
 }
+
+
+
+

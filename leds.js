@@ -6,7 +6,7 @@ class Project {
         }
         this.dataType = args.dataType
         this.selectedColor = 0
-        this.selectedFrame = 0
+        this.selectedFrame = -1
         this.colorConfig = defs.colorConfigs.get(this.dataType)
         this.colors = this.colorConfig.colors
 
@@ -16,6 +16,9 @@ class Project {
         this.updateColorPicker()
 
         this.frames = []
+        window.setTimeout(() => {
+            this.addFrame()
+        }, 0);
     }
 
     addFrame(frame) {
@@ -32,10 +35,16 @@ class Project {
         let html = ''
         for (let i = 0; i < this.frames.length; i++) {
             const frame = this.frames[i];
-            html += `<div class="frame" onclick="project.selectFrame(${i})">${i}</div>`
+            html += `
+            <div class="frame" onclick="project.selectFrame(${i})">
+                <canvas id="iconFrame${i}" width="8" height="8"></canvas>
+            </div>`
         }
         html += `<button id="addFrame" onclick="project.addFrame()"><img class="icon" src="icons/add.svg"></button>`
         document.getElementById('frames').innerHTML = html
+        for (let i = 0; i < document.getElementsByClassName('frame').length; i++) {
+            console.log(i)
+        }
         this.selectFrame(this.frames.length -1)
     }
 
@@ -47,6 +56,7 @@ class Project {
         this.selectedFrame = nframe
         document.querySelector('.frame.selected')?.classList.remove('selected')
         document.getElementsByClassName('frame')[this.selectedFrame].classList.add('selected')
+        this.frames[this.selectedFrame].renderIcon(document.getElementById('iconFrame'+nframe))
         this.frames[this.selectedFrame].render()
     }
 
@@ -160,6 +170,16 @@ class Frame {
         }
         return ledDataWritten.response.join('') === ledData
     }
+
+    renderIcon(canvasElement) {
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const ctx = canvasElement.getContext("2d")
+                ctx.fillStyle = project.colors[ this.leds[row][col] ]
+                ctx.fillRect(col, row, 1, 1)
+            }
+        }
+    }
 }
 
 
@@ -178,6 +198,9 @@ document.getElementById('leds').addEventListener('mousemove', (e) => {
 document.getElementById('leds').addEventListener('mousedown', (e) => {
     const pos = diviteTouchTargetInGrid(e, 8, 8, document.getElementById('leds'))
     project.paint(pos)
+})
+document.getElementById('leds').addEventListener('mouseup', (e) => {
+    project.frames[project.selectedFrame].renderIcon( document.getElementById('iconFrame'+project.selectedFrame) )
 })
 
 
@@ -201,5 +224,4 @@ leds.init = function () {
     project = new Project({
         dataType: '8b'
     })
-    project.addFrame()
 }
