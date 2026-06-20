@@ -62,8 +62,8 @@ class Project {
 
     updateColorPicker() {
         const canvas = document.getElementById('picker')
-        canvas.width = this.colorConfig.pickerSize.x
-        canvas.height = this.colorConfig.pickerSize.y
+        canvas.width = this.colorConfig.pickerSize.y
+        canvas.height = this.colorConfig.pickerSize.x
 
         const ctx = canvas.getContext("2d")
         for (let i = 0; i < this.colors.length; i++) {
@@ -76,8 +76,8 @@ class Project {
         }
 
         document.getElementById('picker').addEventListener('click', (e) => {
-            const pos = diviteTouchTargetInGrid(e, 8, 8)
-            project.selectedColor = pos.y * 8 + pos.x
+            const pos = diviteTouchTargetInGrid(e, this.colorConfig.pickerSize.x, this.colorConfig.pickerSize.y)
+            project.selectedColor = pos.y * this.colorConfig.pickerSize.y + pos.x
         })
     }
 
@@ -101,6 +101,7 @@ class Project {
     }
 }
 
+
 class Frame {
     constructor(args) {
         if (!defs.dataTypes.includes(args.dataType)) {
@@ -108,16 +109,17 @@ class Frame {
             return
         }
         this.type = args.dataType
+        let c = project.colorConfig.defaultColor
         this.leds = [
-            [0,0,0,0, 0,0,0,0],
-            [0,0,0,0, 0,0,0,0],
-            [0,0,0,0, 0,0,0,0],
-            [0,0,0,0, 0,0,0,0],
+            [c,c,c,c, c,c,c,c],
+            [c,c,c,c, c,c,c,c],
+            [c,c,c,c, c,c,c,c],
+            [c,c,c,c, c,c,c,c],
 
-            [0,0,0,0, 0,0,0,0],
-            [0,0,0,0, 0,0,0,0],
-            [0,0,0,0, 0,0,0,0],
-            [0,0,0,0, 0,0,0,0]
+            [c,c,c,c, c,c,c,c],
+            [c,c,c,c, c,c,c,c],
+            [c,c,c,c, c,c,c,c],
+            [c,c,c,c, c,c,c,c]
         ]
     }
 
@@ -222,6 +224,6 @@ leds.init = function () {
     document.getElementById('leds').innerHTML = html
 
     project = new Project({
-        dataType: '8b'
+        dataType: '6b'
     })
 }
