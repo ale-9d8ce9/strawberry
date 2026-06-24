@@ -1,3 +1,32 @@
 controls {
     width: var(--controls-width);
 }
+
+
+
+
+#connectBtn {
+    width: 100%;
+}
+
+#devTools {
+    display: inline-block;
+    position: relative;
+
+    > div {
+        position: absolute;
+        translate: .5rem -70%;
+        top: 0;
+        opacity: 0;
+        transition: var(--transition-normal);
+        height: 0;
+        right: 0;
+        overflow: hidden;
+    }
+    &:hover > div {
+        opacity: 1;
+        height: auto;
+        translate: .5rem -100%;
+        padding: 0 0 0 8rem;
+    }
+}

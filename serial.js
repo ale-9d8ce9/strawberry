@@ -23,7 +23,7 @@ let serial = {
 
 serial.connect = async function () {
     try {
-        serial.port = await navigator.serial.requestPort(/*{filters: serial.filters}*/)
+        serial.port = await navigator.serial.requestPort({filters: serial.filters})
         await serial.port.open(serial.serialOptions)
         console.log('connected to', serial.port)
         serial.deviceBusy = false
@@ -175,5 +175,5 @@ serial.updateSerialMonitor = function () {
 }
 
 serial.updateButtons = function () {
-    document.getElementById('connect-btn').hidden = serial.deviceConnected
+    document.getElementById('connectBtn').disabled = serial.deviceConnected
 }

@@ -6,13 +6,14 @@
     outline: none;
     transition-behavior: allow-discrete;
     interpolate-size: allow-keywords;
+    user-select: none;
 }
 
 body {
     width: 100%;
     height: 100vh;
     overflow: hidden;
-    background-color: #15022c;
+    background-color: var(--page-bg);
 }
 
 page {
@@ -32,7 +33,28 @@ button:has(.icon) {
     background-color: transparent;
 }
 
-.window {
-    backdrop-filter: blur(2rem);
-    resize: both;
+.iconContainer {
+    position: relative;
+    background-color: var(--icon-container-bg);
+    padding: .3rem;
+    margin: .5rem;
+    border-radius: .5rem;
+}
+.iconContainer::before {
+    content: attr(data-name);
+    position: absolute;
+    text-wrap: nowrap;
+    background-color: var(--icon-container-bg);
+    color: #a2a2a2;
+    opacity: 0;
+    padding: .5rem;
+    border-radius: .5rem;
+    top: 50%;
+    left: 0;
+    translate: -100% -50%;
+    transition: var(--transition-normal);
+}
+.iconContainer:hover::before {
+    opacity: 1;
+    translate: calc(-100% - .5rem) -50%;
 }

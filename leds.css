@@ -1,31 +1,14 @@
-#frames {
-    overflow: scroll;
-    display: flex;
-    max-height: 100%;
-    flex-direction: column;
-    width: var(--frames-width);
-}
-.frame {
-    aspect-ratio: 1/1;
-
-    canvas {
-        width: var(--frames-width);
-        aspect-ratio: 1/1;
-        image-rendering: pixelated;
-    }
-}
 
 
 #leds {
     display: grid;
-    height: min(var(--leds-max-w), 100vh);
+    height: min(var(--leds-max-w), var(--page-height));
     grid-template-columns: repeat(8, auto);
     aspect-ratio: 1/1;
     rotate: var(--leds-rotation);
     transition:
         var(--transition-ledsRotation),
         height var(--transition-normal);
-    outline: .1rem dashed green;
     margin: auto;
 }
 @property --leds-rotation {

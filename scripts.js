@@ -87,6 +87,7 @@ async function start() {
     payloads.initMonitor()
     await leds.init()
 
+    document.documentElement.style.setProperty('--transition-fast',config.transitionSpeed.fast+'s')
     document.documentElement.style.setProperty('--transition-normal',config.transitionSpeed.normal+'s')
     document.documentElement.style.setProperty('--transition-ledsRotation',config.transitionSpeed.ledsRotation+'s')
 }

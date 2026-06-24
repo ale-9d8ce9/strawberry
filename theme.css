@@ -1,9 +1,14 @@
 :root {
+    --page-bg: #323232;
+
+    --icon-container-bg: #000;
+
     --ui-view-border-padding: 1rem;
     --icon-size: 2rem;
 
-    --frames-width: 2rem;
+    --frames-width: 5rem;
     --controls-width: 15rem;
+    --page-height: 100vh;
 
     --leds-max-w: calc(100vw - var(--controls-width) - var(--frames-width))
 }

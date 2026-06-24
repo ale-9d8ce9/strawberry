@@ -4,6 +4,7 @@ const config = {
     logAllSerial: false,
 
     transitionSpeed: {
+        fast: 0.15,
         normal: 0.3,
         ledsRotation: 1
     },

@@ -1,3 +1,5 @@
+img elements dont support pseudoelements, who decided this
+
 ```
 
 #define SERIAL_SPEED 115200
@@ -36,3 +38,25 @@ receive [header]
     output
 receive
     status
+
+
+
+save data
+
+[00]:
+    - project start (uint16)
+
+[project start]:
+    - A leds frames start (uint16)
+    - B frames count (uint8)
+    - C restast from frame n (uint8)
+    - D delay between frames (uint8)
+    - E mode
+    
+    AAAABBCCDD 
+
+[mode]
+    - A default mode when power on (play animations / water sim)
+    - B leds compression mode
+
+    ABB

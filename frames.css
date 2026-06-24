@@ -1,0 +1,45 @@
+framesPanel > *{
+    box-sizing: border-box;
+    width: var(--frames-width);
+}
+
+#frames {
+    overflow: scroll;
+    display: flex;
+    max-height: 100%;
+    flex-direction: column;
+}
+.frame {
+    aspect-ratio: 1/1;
+    image-rendering: pixelated;
+    padding: .5rem;
+}
+#addFrame {
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 0 1rem 1rem var(--page-bg);
+    background-color: var(--page-bg);
+    aspect-ratio: 3/2;
+
+    img {
+        outline: .1rem solid oklch(88.837% 0.0001 271.152);
+        border-radius: 50%;
+        transition: var(--transition-fast);
+        scale: 1.3;
+    }
+
+    &:active img{
+        scale: 1;
+    }
+
+}
+@keyframes rotate90 {
+    0% {
+        rotate: 0deg;
+    }
+    100% {
+        rotate: 90deg;
+    }
+}
+
+

@@ -1,0 +1,111 @@
+.window {
+    backdrop-filter: blur(2rem);
+    resize: both;
+    display: none;
+}
+.window.show {
+    display: inline-block;
+}
+
+
+
+
+payloadMonitor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    max-width: 30rem;
+    min-width: 15rem;
+    min-height: 5rem;
+    max-height: 65%;
+    background-color: #22222227;
+    overflow: scroll;
+
+    input, button {
+        padding: .2rem .4rem;
+        margin: .2rem .1rem;
+    }
+    >div:nth-child(1) {
+        position: sticky;
+        padding: .5rem;
+        top: 0;
+        backdrop-filter: blur(2rem);
+    }
+}
+
+#hexMonitor-content {
+    background-color: #000000;
+    color: white;
+    max-width: 40rem;
+    message {
+        display: grid;
+        grid-template-columns: repeat(8, auto);
+        
+        byte {
+            padding: .5rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+    }
+
+    .sent {
+        background-color: #7a6114;
+    }
+    .received {
+        background-color: #108028;
+    }
+}
+
+
+
+hexMonitor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    max-width: 30rem;
+    min-width: 15rem;
+    min-height: 5rem;
+    max-height: 65%;
+    background-color: #22222227;
+    overflow: scroll;
+
+    input, button {
+        padding: .2rem .4rem;
+        margin: .2rem .1rem;
+    }
+    >div:nth-child(1) {
+        position: sticky;
+        padding: .5rem;
+        top: 0;
+        backdrop-filter: blur(2rem);
+    }
+}
+
+#hexMonitor-content {
+    background-color: #000000;
+    color: white;
+    max-width: 40rem;
+    message {
+        display: grid;
+        grid-template-columns: repeat(8, auto);
+        
+        byte {
+            padding: .5rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+    }
+
+    .sent {
+        background-color: #7a6114;
+    }
+    .received {
+        background-color: #108028;
+    }
+}

@@ -26,25 +26,19 @@ class Project {
         if (frame) {
             nframe = frame
         } else {
-            nframe = new Frame({
-                dataType: this.dataType
-            })
+            nframe = new Frame(this.dataType)
         }
+
+        let c = document.createElement('canvas')
+        c.classList.add('frame')
+        c.id = 'iconFrame'+this.frames.length
+        c.width = 8
+        c.height = 8
+        c.setAttribute('onclick', `project.selectFrame(${this.frames.length})`)
+        document.getElementById('frames').append(c)
+        animations.play(document.getElementById('addFrame').children[0], 'rotate90', 0.2)
+
         this.frames.push(nframe)
-        // update frames sidebar
-        let html = ''
-        for (let i = 0; i < this.frames.length; i++) {
-            const frame = this.frames[i];
-            html += `
-            <div class="frame" onclick="project.selectFrame(${i})">
-                <canvas id="iconFrame${i}" width="8" height="8"></canvas>
-            </div>`
-        }
-        html += `<button id="addFrame" onclick="project.addFrame()"><img class="icon" src="icons/add.svg"></button>`
-        document.getElementById('frames').innerHTML = html
-        for (let i = 0; i < document.getElementsByClassName('frame').length; i++) {
-            console.log(i)
-        }
         this.selectFrame(this.frames.length -1)
     }
 
@@ -99,16 +93,27 @@ class Project {
         document.documentElement.style.setProperty('--leds-rotation',`${angle}deg`)
         animations.play( document.getElementById('leds'), 'shrink', config.transitionSpeed.ledsRotation)
     }
+
+    async write() {
+        let ledData = this.exportLedData()
+        let start = projectStart + (n * ledData.length /2)
+        let x = await payloads.writeMemory(start, ledData.length /2, ledData)
+        return x
+    }
+
 }
 
 
+
+
+
 class Frame {
-    constructor(args) {
-        if (!defs.dataTypes.includes(args.dataType)) {
-            throw new Error("unknown data type "+args.dataType);
+    constructor(dataType) {
+        if (!defs.dataTypes.includes(dataType)) {
+            throw new Error("unknown data type "+dataType);
             return
         }
-        this.type = args.dataType
+        this.dataType = dataType
         let c = project.colorConfig.defaultColor
         this.leds = [
             [c,c,c,c, c,c,c,c],
@@ -136,18 +141,38 @@ class Frame {
         }
     }
 
-    async write(projectStart, n) {
-        if (projectStart === undefined || n === undefined) {
-            throw new Error("arguments projectStart and n needed for Frame");
-            return
+    exportLedData() {
+        let data
+        switch (this.dataType) {
+            case '8b':
+                data = this.export8b()
+                break;
+        
+            case '6b':
+                data = this.export6b()
+                break;
+
+            default:
+                console.error('unknown data type for frame',this)
+                break;
         }
-        let ledData = this.exportLedData()
-        let start = projectStart + (n * ledData.length /2)
-        let x = await payloads.writeMemory(start, ledData.length /2, ledData)
-        return x
+        return data
     }
 
-    exportLedData() {
+    export6b() {
+        let data = ''
+        for (let row = 0; row < this.leds.length; row++) {
+            for (let col = 0; col < this.leds[row].length; col+=2) {
+                let byteGroup = this.leds[row][col]
+                byteGroup = byteGroup << 6
+                byteGroup += this.leds[row][col+1]
+
+                data += intToHex(byteGroup)
+            }
+        }
+        return data
+    }
+    export8b() {
         let data = ''
         for (let row = 0; row < this.leds.length; row++) {
             for (let col = 0; col < this.leds[row].length; col++) {
