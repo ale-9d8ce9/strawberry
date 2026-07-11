@@ -70,7 +70,7 @@ class Payload {
 
         if (responseStatus == defs.status.error || responseStatus == defs.status.fatalError) {
             if (responseStatus == defs.status.fatalError) {
-                // await reconnect
+                await serial.reconnect()
             }
             return {
                 ok: false,
@@ -107,7 +107,7 @@ class Payload {
 
 
     async checkResponse(response) {
-        if (response.length /2 < 2) {
+        if (response.length < 2) {
             return {
                 ok: false,
                 withError: false,
@@ -120,7 +120,6 @@ class Payload {
         let responseCode = response[l-1]
 
         if (responseStatus == defs.status.allOk && (responseCode == defs.status.ready || responseCode == defs.status.wait)) {
-            console.log(response, response.slice(0,l-2))
             return {
                 ok: true,
                 response: response.slice(0,l-2)
@@ -129,7 +128,7 @@ class Payload {
 
         if (responseStatus == defs.status.error || responseStatus == defs.status.fatalError) {
             if (responseStatus == defs.status.fatalError) {
-                // await reconnect
+                await serial.reconnect()
             }
             return {
                 ok: false,
@@ -154,20 +153,30 @@ class Payload {
 
 
     async execute() {
+        function exit(result, payload) {
+            serial.deviceBusy = false
+            payload.history.result = result
+            payloads.history.push(payload.history)
+            if (!result.ok) {
+                alert('error: '+JSON.stringify(result.message))
+            }
+            return result
+        }
+
         console.log('executing', this)
         if (!serial.deviceConnected) {
-            return {
+            return exit({
                 ok: false,
                 message: 'no device connected',
                 withError: false
-            }
+            }, this)
         }
         if (!await this.check()) {
-            return {
+            return exit({
                 ok: false,
                 message: 'invalid payload, aborted (check console for details)',
                 withError: false
-            }
+            }, this)
         }
 
         if (serial.deviceBusy) {
@@ -179,11 +188,11 @@ class Payload {
                 count ++
                 if (count > 121) {
                     console.warn('device still busy')
-                    return {
+                    return exit({
                         ok: false,
                         withError: false,
                         message: 'device busy for more than 1 minute'
-                    }
+                    }, this)
                 }
             }
         }
@@ -206,24 +215,19 @@ class Payload {
         let outputLength = result.outputLength
         
         if (result.reset) { // if reset happened stop payload, even if it needs other data
-            serial.deviceBusy = false
-            payloads.history.push(this.history)
-            return result
+            return exit(result, this)
         }
         if (!result.ok) {
-            payloads.history.push(this.history)
-            return result
+            return exit(result, this)
         }
 
         if (this.needsOtherData) {
             if (this.otherData.length /2 != result.inputLength) {
-                // handle this
-                payloads.history.push(this.history)
-                return {
+                return exit({
                     ok: false,
                     withError: false,
                     message: 'otherData lengths do not match (payload: '+(this.otherData.length /2)+', expected: '+result.inputLength+')'
-                }
+                }, this)
             }
             let response = divideHexStringInBytes(await serial.send(this.otherData))
         } else {
@@ -231,9 +235,11 @@ class Payload {
             response = response.slice(4, l)
         }
 
-        serial.deviceBusy = false
-        payloads.history.push(this.history)
-        return result
+        result = await this.checkResponse(response)
+        this.history.responseCheck = result
+        this.history.response = result.response
+
+        return exit(result, this)
     }
 }
 
@@ -316,4 +322,13 @@ payloads.runPMInputs = function () {
     op.needsOtherData ? payloadArg.otherData = document.getElementById('pm-otherData').value : undefined
     let p = new Payload(payloadArg)
     p.execute()
+}
+
+payloads.updatePMHistory = function () {
+    let html = ''
+    payloads.history.forEach(payloadHistory => {
+        let json = JSON.stringify(payloadHistory, null, 4).replaceAll('"', '')
+        html += `<pre>${json}</pre>`
+    });
+    document.getElementById('payloadMonitor-content').innerHTML = html
 }

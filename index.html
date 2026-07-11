@@ -24,6 +24,7 @@
             <canvas id="picker"></canvas>
             <div id="selectedColor"></div>
             <button onclick="serial.connect()" id="connectBtn">connect</button>
+            <button id="flash">flash</button>
             <div id="devTools" data-name="dev tools" class="iconContainer">
                 <img src="icons/dev.svg" class="icon">
                 <div>
@@ -60,7 +61,7 @@
             <textarea id="pm-otherData" onmousemove="event.stopPropagation()"></textarea>
             <button onclick="payloads.runPMInputs()">run</button>
         </div>
-        
+        <div id="payloadMonitor-content"></div>
     </payloadMonitor>
     <errorPopup hidden>
         <text class="title">Error</text>

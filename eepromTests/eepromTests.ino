@@ -54,6 +54,7 @@ void setup() {
   fill_solid(leds, NUM_LEDS, CRGB::Red);
   FastLED.show();
   usb.write(stsBootComplete);
+  usb.write(stsAllOk);
   usb.write(stsReady);
 }
 
@@ -134,11 +135,6 @@ void executePayload() {
       fatalError(errUnknownOperation);
       break;
   }
-  //usb.write(0xfa);
-  //usb.write(arg1);
-  //usb.write(arg2);
-  //usb.write(arg3);
-  //usb.write(0xfa);
 }
 
 void handleSerial(uint8_t input) {

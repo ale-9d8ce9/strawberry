@@ -31,7 +31,7 @@ function divideHexStringInBytes(hexString) {  // divide string in couples 'aabb'
 }
 
 function intToHex(int) {
-    return parseInt(int).toString(16).toLocaleUpperCase().padStart(2,'0')
+    return parseInt(int).toString(16).toUpperCase().padStart(2,'0')
 }
 function hexToInt(hex) {
     return parseInt(hex, 16)
@@ -85,7 +85,7 @@ function loadImage(src) {
 
 async function start() {
     payloads.initMonitor()
-    await leds.init()
+    leds.init()
 
     document.documentElement.style.setProperty('--transition-fast',config.transitionSpeed.fast+'s')
     document.documentElement.style.setProperty('--transition-normal',config.transitionSpeed.normal+'s')

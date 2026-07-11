@@ -27,12 +27,35 @@ serial.connect = async function () {
         await serial.port.open(serial.serialOptions)
         console.log('connected to', serial.port)
         serial.deviceBusy = false
-        serial.deviceConnected = true
         serial.read()
+        await serial.reconnect()
     } catch (e) {
         console.error('error connecting:',e)
     }
     serial.updateButtons()
+}
+
+serial.reconnect = async function () {
+    serial.deviceConnected = false
+    if (serial.currentlyReceiving !== '') {
+        serial.history.push({dir: 'received', content: serial.currentlyReceiving})
+        serial.currentlyReceiving = ''
+    }
+    let c = 0
+    while (
+        serial.currentlyReceiving.length != 6 &&
+        serial.currentlyReceiving.endsWith(defs.status.bootComplete + defs.status.allOk + defs.status.ready)
+    ) {
+        await delay(500)
+        if (c > 20) {
+            return false
+        }
+    }
+    serial.history.push({dir: 'received', content: serial.currentlyReceiving})
+    serial.currentlyReceiving = ''
+    console.log('reconnected')
+    serial.deviceConnected = true
+    return true
 }
 
 serial.read = async function () {
@@ -151,7 +174,7 @@ serial.clearHistory = function () {
 serial.updateSerialMonitor = function () {
     function renderMessage(message) {
         html = `<message class="${message.dir}">`
-        bytes = divideHexStringInBytes(message.content)
+        bytes = divideHexStringInBytes(message.content) ?? []
         for (let i = 0; i < bytes.length; i++) {
             const byte = bytes[i];
             html += `

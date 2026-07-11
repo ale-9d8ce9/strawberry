@@ -59,10 +59,10 @@ const defs = {
         },
     },
     errors: new Map([
-        ['01','rangeOutsideOfMemoryCapacity'],
-        ['02','unknownOperation'],
-        ['03','ArgsTooLong'],
-        ['04','InvalidArgs'],
+        ['01','range outside of memory capacity'],
+        ['02','unknown operation'],
+        ['03','args too long'],
+        ['04','invalid args'],
     ]),
 
     dataTypes: ['8b','6b'],
