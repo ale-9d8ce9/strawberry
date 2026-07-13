@@ -1,5 +1,5 @@
 :root {
-    --page-bg: #323232;
+    --page-bg: #121212;
 
     --icon-container-bg: #000;
 
@@ -9,6 +9,7 @@
     --frames-width: 5rem;
     --controls-width: 15rem;
     --page-height: 100vh;
+    --leds-margin: 2rem;
 
-    --leds-max-w: calc(100vw - var(--controls-width) - var(--frames-width))
+    --leds-max-w: calc(100vw - var(--controls-width) - var(--frames-width) - 2*var(--leds-margin))
 }

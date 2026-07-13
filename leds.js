@@ -15,6 +15,12 @@ class Project {
 
         this.updateColorPicker()
 
+        if (args.lightBleedCanvas) {
+            this.lightBleedCanvas = args.lightBleedCanvas
+            this.lightBleedCanvas.width = 32
+            this.lightBleedCanvas.height = 32
+        }
+
         this.frames = []
         window.setTimeout(() => {
             this.addFrame()
@@ -26,16 +32,9 @@ class Project {
         if (frame) {
             nframe = frame
         } else {
-            nframe = new Frame(this.dataType)
+            nframe = new Frame(this.dataType, this.frames.length)
         }
 
-        let c = document.createElement('canvas')
-        c.classList.add('frame')
-        c.id = 'iconFrame'+this.frames.length
-        c.width = 8
-        c.height = 8
-        c.setAttribute('onclick', `project.selectFrame(${this.frames.length})`)
-        document.getElementById('frames').append(c)
         animations.play(document.getElementById('addFrame').children[0], 'rotate90', 0.2)
 
         this.frames.push(nframe)
@@ -50,7 +49,6 @@ class Project {
         this.selectedFrame = nframe
         document.querySelector('.frame.selected')?.classList.remove('selected')
         document.getElementsByClassName('frame')[this.selectedFrame].classList.add('selected')
-        this.frames[this.selectedFrame].renderIcon(document.getElementById('iconFrame'+nframe))
         this.frames[this.selectedFrame].render()
     }
 
@@ -77,8 +75,9 @@ class Project {
 
     paint(pos) {
         this.frames[this.selectedFrame].leds[pos.y][pos.x] = this.selectedColor
-        this.frames[this.selectedFrame].renderPixel(pos.y,pos.x)
+        this.frames[this.selectedFrame].renderPixel(pos.y, pos.x)
     }
+
     rotate(angle = 0) {
         if (angle == this.rotation) {
             return
@@ -108,12 +107,21 @@ class Project {
 
 
 class Frame {
-    constructor(dataType) {
+    constructor(dataType, frameNumber) {
         if (!defs.dataTypes.includes(dataType)) {
             throw new Error("unknown data type "+dataType);
             return
         }
         this.dataType = dataType
+        // frame icon
+        this.iconElement = document.createElement('canvas')
+        this.iconElement.classList.add('frame')
+        this.iconElement.id = 'iconFrame'+frameNumber
+        this.iconElement.width = 8
+        this.iconElement.height = 8
+        this.iconElement.setAttribute('onclick', `project.selectFrame(${frameNumber})`)
+        document.getElementById('frames').append(this.iconElement)
+
         let c = project.colorConfig.defaultColor
         this.leds = [
             [c,c,c,c, c,c,c,c],
@@ -132,6 +140,18 @@ class Frame {
         const colorIndex = this.leds[row][col];
         let ledIndex = row * this.leds[row].length + col
         document.getElementsByClassName('led')[ledIndex].style.backgroundColor = project.colors[colorIndex]
+
+        // frame icon
+        const ctxIcon = this.iconElement.getContext("2d")
+        ctxIcon.fillStyle = project.colors[ this.leds[row][col] ]
+        ctxIcon.fillRect(col, row, 1, 1)
+
+        // light bleed
+        if (project.lightBleedCanvas) {
+            const ctxLightBleed = project.lightBleedCanvas.getContext("2d")
+            ctxLightBleed.fillStyle = project.colors[ this.leds[row][col] ]
+            ctxLightBleed.fillRect(col*2+8, row*2+8, 2, 2)
+        }
     }
     render() {
         for (let row = 0; row < this.leds.length; row++) {
@@ -197,16 +217,6 @@ class Frame {
         }
         return ledDataWritten.response.join('') === ledData
     }
-
-    renderIcon(canvasElement) {
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                const ctx = canvasElement.getContext("2d")
-                ctx.fillStyle = project.colors[ this.leds[row][col] ]
-                ctx.fillRect(col, row, 1, 1)
-            }
-        }
-    }
 }
 
 
@@ -226,9 +236,6 @@ document.getElementById('leds').addEventListener('mousedown', (e) => {
     const pos = diviteTouchTargetInGrid(e, 8, 8, document.getElementById('leds'))
     project.paint(pos)
 })
-document.getElementById('leds').addEventListener('mouseup', (e) => {
-    project.frames[project.selectedFrame].renderIcon( document.getElementById('iconFrame'+project.selectedFrame) )
-})
 
 
 leds.init = function () {
@@ -246,9 +253,12 @@ leds.init = function () {
 
             "></led>`
     }
+    html += '<canvas id="leds-light-bleed">'
+
     document.getElementById('leds').innerHTML = html
 
     project = new Project({
-        dataType: '6b'
+        dataType: '8b',
+        lightBleedCanvas: document.getElementById('leds-light-bleed')
     })
 }

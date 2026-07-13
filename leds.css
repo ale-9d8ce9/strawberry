@@ -18,6 +18,17 @@
 }
 
 
+#leds-light-bleed {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    width: 200%;
+    pointer-events: none;
+    z-index: -64;
+    opacity: .3;
+}
+
 
 @property --translate-x {
     syntax: "<length-percentage>";

@@ -83,6 +83,10 @@ function loadImage(src) {
 }
 
 
+function alignLedsShadow() {
+}
+
+
 async function start() {
     payloads.initMonitor()
     leds.init()

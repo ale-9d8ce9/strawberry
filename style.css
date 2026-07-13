@@ -28,9 +28,16 @@ page {
     width: var(--icon-size);
     height: var(--icon-size);
     user-select: none;
+    -webkit-user-drag: none;
 }
 button:has(.icon) {
     background-color: transparent;
+}
+
+buttonGroup {
+    display: flex;
+    align-items: end;
+    flex-direction: column;
 }
 
 .iconContainer {
@@ -53,6 +60,7 @@ button:has(.icon) {
     left: 0;
     translate: -100% -50%;
     transition: var(--transition-normal);
+    pointer-events: none;
 }
 .iconContainer:hover::before {
     opacity: 1;

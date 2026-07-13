@@ -3,6 +3,11 @@ framesPanel > *{
     width: var(--frames-width);
 }
 
+framesPanel {
+    background-color: #d5d5d54d;
+    padding-bottom: var(--frames-width);
+}
+
 #frames {
     overflow: scroll;
     display: flex;
@@ -17,9 +22,8 @@ framesPanel > *{
 #addFrame {
     position: sticky;
     bottom: 0;
-    box-shadow: 0 0 1rem 1rem var(--page-bg);
-    background-color: var(--page-bg);
-    aspect-ratio: 3/2;
+    aspect-ratio: 1/1;
+    background-color: #0b9c1775;
 
     img {
         outline: .1rem solid oklch(88.837% 0.0001 271.152);
