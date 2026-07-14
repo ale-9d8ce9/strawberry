@@ -7,9 +7,12 @@
     aspect-ratio: 1/1;
     rotate: var(--leds-rotation);
     transition:
-        var(--transition-ledsRotation),
-        height var(--transition-normal);
-    margin: auto;
+        var(--transition-slow),
+        rotate var(--transition-ledsRotation);
+    position: absolute;
+    top: 50%;
+    left: calc(50% - var(--frames-width));
+    translate: -50% -50%;
 }
 @property --leds-rotation {
   syntax: "<angle>";

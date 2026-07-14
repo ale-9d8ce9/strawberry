@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="leds.css">
     <link rel="stylesheet" href="dev.css">
     <link rel="stylesheet" href="controls.css">
+    <link rel="stylesheet" href="settings.css">
     <link rel="stylesheet" href="error.css">
     <link rel="stylesheet" href="theme.css">
 </head>
@@ -23,6 +24,7 @@
         <controls>
             <canvas id="picker"></canvas>
             <div id="selectedColor"></div>
+            <button onclick="document.querySelector('page').classList.toggle('showSettings')">settins</button>
             <buttonGroup>
                 <button onclick="serial.connect()" id="connectBtn">connect</button>
                 <button id="flash">flash</button>
@@ -43,6 +45,9 @@
                 </div>
             </div>
         </controls>
+        <settings>
+
+        </settings>
     </page>
     <hexMonitor class="window" style="top:100px;left:200px">
         <div class="window-handle">

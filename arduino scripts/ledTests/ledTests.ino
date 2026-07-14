@@ -1,0 +1,92 @@
+#include <FastLED.h>
+
+#define LED_PIN     9
+#define NUM_LEDS    64
+#define BRIGHTNESS  5
+#define LED_TYPE    WS2812B
+#define COLOR_ORDER GRB
+
+CRGB leds[NUM_LEDS];
+
+void setup() {
+  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setMaxPowerInVoltsAndMilliamps(5,200);
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  FastLED.clear();
+  FastLED.show();
+  delay(50);
+  pinMode(3, OUTPUT); // precharge
+  digitalWrite(3, LOW);
+  Serial.begin(9600);
+  printAnalogInput();
+  delay(500);
+}
+
+void loop() {
+  testSolidColors();
+  testChase();
+  testRainbow();
+  testRandomBlink();
+  printAnalogInput();
+}
+
+// Test 1: Fill strip with solid colors one at a time
+void testSolidColors() {
+  CRGB colors[] = { CRGB::Red, CRGB::Green, CRGB::Blue, CRGB::White };
+  for (int c = 0; c < 4; c++) {
+    fill_solid(leds, NUM_LEDS, colors[c]);
+    FastLED.show();
+    delay(800);
+  }
+  FastLED.clear();
+  FastLED.show();
+  delay(300);
+}
+
+// Test 2: Chase a single pixel around all 64 LEDs (checks each LED individually)
+void testChase() {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    FastLED.clear();
+    leds[i] = CRGB::White;
+    FastLED.show();
+    delay(40);
+  }
+  FastLED.clear();
+  FastLED.show();
+  delay(300);
+}
+
+// Test 3: Rainbow sweep across the strip
+void testRainbow() {
+  for (int hueShift = 0; hueShift < 512; hueShift += 4) {
+    fill_rainbow(leds, NUM_LEDS, hueShift, 255 / NUM_LEDS);
+    FastLED.show();
+    delay(20);
+  }
+  FastLED.clear();
+  FastLED.show();
+  delay(300);
+}
+
+// Test 4: Random flicker to catch any glitchy/dead pixels
+void testRandomBlink() {
+  for (int i = 0; i < 60; i++) {
+    for (int j = 0; j < NUM_LEDS; j++) {
+      leds[j] = CHSV(random8(), 255, random8(50, 255));
+    }
+    FastLED.show();
+    delay(50);
+  }
+  FastLED.clear();
+  FastLED.show();
+  delay(300);
+}
+
+void printAnalogInput() {
+  Serial.print("A0: ");
+  Serial.print(analogRead(0));
+  Serial.print(", A1: ");
+  Serial.print(analogRead(1));
+  Serial.print(", light sensor: ");
+  Serial.println(analogRead(7));
+}

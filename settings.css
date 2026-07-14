@@ -1,0 +1,34 @@
+settings {
+    height: min(var(--leds-max-w), var(--page-height));
+    aspect-ratio: 1/1;
+    position: absolute;
+    top: 50%;
+    left: calc(50% - var(--frames-width));
+    translate: -50% -50%;
+    transition: var(--transition-slow);
+    background-color: #ff000074;
+
+    pointer-events: none;
+}
+
+
+page.showSettings {
+    leds {
+        left: 50% !important;
+
+        led {
+            scale: 1;
+            border-radius: 0;
+        }
+    }
+
+    settings {
+        left: 50%;
+    }
+
+
+    framesPanel, controls {
+        opacity: .1;
+        /* z-index: -10; */
+    }
+}

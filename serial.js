@@ -16,7 +16,7 @@ let serial = {
         bufferSize: 510
     },
     filters: [
-        {usbVendorId: 0x1A86, usbProductId: 0xE013},
+        {usbVendorId: 0x1A86, usbProductId: 0x1A86},
         {usbVendorId: 0x2341, usbProductId: 0x0043}, // arduino uno official
     ]
 }

@@ -1,5 +1,7 @@
 controls {
     width: var(--controls-width);
+    position: fixed;
+    right: 0;
 }
 
 

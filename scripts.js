@@ -93,6 +93,7 @@ async function start() {
 
     document.documentElement.style.setProperty('--transition-fast',config.transitionSpeed.fast+'s')
     document.documentElement.style.setProperty('--transition-normal',config.transitionSpeed.normal+'s')
+    document.documentElement.style.setProperty('--transition-slow',config.transitionSpeed.slow+'s')
     document.documentElement.style.setProperty('--transition-ledsRotation',config.transitionSpeed.ledsRotation+'s')
 }
 window.onload = start

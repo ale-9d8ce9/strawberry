@@ -6,6 +6,7 @@ const config = {
     transitionSpeed: {
         fast: 0.15,
         normal: 0.3,
+        slow: 3,
         ledsRotation: 1
     },
 
