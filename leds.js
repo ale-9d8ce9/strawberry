@@ -215,6 +215,9 @@ class Frame {
         return data
     }
 
+    async preview() {
+        return await payloads.showFrame(this.exportLedData())
+    }
     async checkWrittenData(projectStart, n) {
         if (projectStart === undefined || n === undefined) {
             throw new Error("arguments projectStart and n needed for Frame");

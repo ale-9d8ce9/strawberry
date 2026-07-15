@@ -218,8 +218,8 @@ class Payload {
             return exit(result, this)
         }
 
-        if (this.needsOtherData) {
-            if (this.otherData.length /2 != result.inputLength) {
+        if (defs.operations[this.op].needsOtherData) {
+            if (this.otherData.length /2 != hexToInt(result.inputLength)) {
                 return exit({
                     ok: false,
                     withError: false,
@@ -253,7 +253,7 @@ payloads.showFrame = async function (frameBytes) {
         }
     }
     let p = new Payload({
-        operation: 'readMemory',
+        operation: 'showFrame',
         otherData: frameBytes
     })
     let response = await p.execute()
