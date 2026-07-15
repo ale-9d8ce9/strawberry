@@ -21,11 +21,12 @@
 #define stsFatalError     0xFE
 #define stsExecuting      0xE0
 
-#define opReadMemory    0x31 // (16 start, 8 offset)
-#define opWriteMemory   0x32 // (16 start, 8 offset) + n data
-#define opShowConnectedLogo 0x11 // (8 bool)
-#define opHardReset     0x02 // no args
-#define opSoftReset     0x01 // no args
+#define opReadMemory    0x83 // (16 start, 8 offset)
+#define opWriteMemory   0x87 // (16 start, 8 offset) + n data
+#define opShowConnectedLogo 0x29 // (8 bool)
+#define opHardReset     0x20 // no args
+#define opSoftReset     0x24 // no args
+#define opShowFrame     0x04 // no args
 
 #define errUnknown                        0x00
 #define errRangeOutsideOfMemoryCapacity   0x01
@@ -44,7 +45,7 @@ uint8_t arg1 = 0;
 uint8_t arg2 = 0;
 uint8_t arg3 = 0;
 
-uint16_t bytecount = 0;
+uint8_t bytecount = 0;
 uint8_t msgLength = 0;
 
 bool connectedLogo = false;
@@ -61,9 +62,12 @@ void setup() {
   pinMode(3, OUTPUT);
 
   fled.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-  fled.setBrightness(5);
+  fled.setBrightness(10);
   fill_solid(leds, NUM_LEDS, CRGB::Purple);
   fled.show();
+
+  delay(50);
+  digitalWrite(3, HIGH);
 
   usb.write(stsBootComplete);
   usb.write(stsAllOk);
@@ -108,6 +112,15 @@ void closeUsbMsgAllOk() {
 
 
 
+uint8_t ledIndexFromXY(uint8_t x, uint8_t y) {
+  if (y+1 & 0x01) { // if y is odd flip x
+    x = 7 - x;
+  }
+  return y*8 +x;
+}
+
+
+
 void error(uint8_t code) {
   usb.write(stsError);
   usb.write(code);
@@ -141,6 +154,9 @@ void executePayload() {
     case opWriteMemory:
       writeMemory();
       break;
+    case opShowFrame:
+      showFrame();
+      break;
     default:
       fatalError(errUnknownOperation);
       break;
@@ -151,7 +167,8 @@ void handleSerial(uint8_t input) {
   switch (bytecount) {
     case 0:
       op = input;
-      msgLength = 4;
+      msgLength = op & 0b00000011;
+      msgLength++;
       break;
     case 1:
       arg1 = input;
@@ -166,6 +183,28 @@ void handleSerial(uint8_t input) {
       fatalError(errArgsTooLong);
       break;
   }
+}
+
+
+
+void showFrame() {
+  usb.write(stsExecuting);
+  usb.write(op);
+  usb.write(64);
+  usb.write(0);
+  for (uint8_t i = 0; i < 64; i++) {
+    waitForSerial();
+    uint8_t value = usb.read();
+    uint8_t r = value & 0b11000000;
+    uint8_t g = value & 0b00110000;
+    g = g << 2;
+    uint8_t b = value & 0b00001100;
+    b = b << 4;
+    uint8_t index = ledIndexFromXY(i%8, i/8);
+    leds[index] = CRGB(r, g, b);
+  }
+  fled.show();
+  closeUsbMsgAllOk();
 }
 
 
@@ -208,6 +247,7 @@ void writeMemory() {
   }
   closeUsbMsgAllOk();
 }
+
 
 
 void showConnectedLogo() {

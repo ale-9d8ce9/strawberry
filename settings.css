@@ -6,7 +6,7 @@ settings {
     left: calc(50% - var(--frames-width));
     translate: -50% -50%;
     transition: var(--transition-slow);
-    background-color: #ff000074;
+    /* background-color: #ff000074; */
 
     pointer-events: none;
 }

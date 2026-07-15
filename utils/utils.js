@@ -22,3 +22,11 @@ async function getPixels(src) {
 
 
 
+// used to get the operation if for a new operation
+function generateFunctionID(opNumber, args) {
+    let a = args & 0b00000011
+    let number = opNumber & 0b00111111
+    let result = number << 2
+    result += a
+    return result
+}

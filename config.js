@@ -26,40 +26,47 @@ const defs = {
     },
     operations: {
         readMemory: {
-            code: '31',
+            code: '83',
             needsArgs: true,
             needsOtherData: false,
             returnsData: true,
             argsLength: 3,
         },
         writeMemory: {
-            code: '32',
+            code: '87',
             needsArgs: true,
             needsOtherData: true,
             argsLength: 3,
             returnsData: false
         },
         showConnectedLogo: {
-            code: '11',
+            code: '29',
             needsArgs: true,
             needsOtherData: false,
             argsLength: 1,
             returnsData: true
         },
         hardReset: {
-            code: '02',
+            code: '20',
             needsArgs: false,
             needsOtherData: false,
             returnsData: false
         },
         softReset: {
-            code: '01',
+            code: '24',
             needsArgs: false,
             needsOtherData: false,
             returnsData: false
         },
+        showFrame: {
+            code: '04',
+            needsArgs: false,
+            needsOtherData: true,
+            returnsData: false
+        },
     },
     errors: new Map([
+        ['00','unknown error :('],
         ['01','range outside of memory capacity'],
         ['02','unknown operation'],
         ['03','args too long'],

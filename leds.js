@@ -15,27 +15,22 @@ class Project {
 
         this.updateColorPicker()
 
-        if (args.lightBleedCanvas) {
-            this.lightBleedCanvas = args.lightBleedCanvas
-            this.lightBleedCanvas.width = 32
-            this.lightBleedCanvas.height = 32
+        if (!args.lightBleedCanvas) {
+            args.lightBleedCanvas = document.getElementById('leds-light-bleed')
         }
+        this.lightBleedCanvas = args.lightBleedCanvas
+        this.lightBleedCanvas.width = 32
+        this.lightBleedCanvas.height = 32
 
         this.frames = []
-        window.setTimeout(() => {
-            this.addFrame()
-        }, 0);
     }
 
-    addFrame(frame) {
-        let nframe
-        if (frame) {
-            nframe = frame
-        } else {
-            nframe = new Frame(this.dataType, this.frames.length)
-        }
+    addFrame(frameData = [], playAnimation = false) {
+        let nframe = new Frame(this.dataType, this.frames.length, frameData)
 
-        animations.play(document.getElementById('addFrame').children[0], 'rotate90', 0.2)
+        if (playAnimation) {
+            animations.play(document.getElementById('addFrame').children[0], 'rotate90', 0.2)
+        }
 
         this.frames.push(nframe)
         this.selectFrame(this.frames.length -1)
@@ -100,14 +95,26 @@ class Project {
         return x
     }
 
+
+    export() {
+        let data = {}
+        data.frames = this.frames
+        data.dataType = this.dataType
+
+        const blob = new Blob([JSON.stringify(data)], { type: 'text/json' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'ledsProject.json'
+        link.click()
+    }
 }
 
 
 
 
-
 class Frame {
-    constructor(dataType, frameNumber) {
+    constructor(dataType, frameNumber, frameData = []) {
         if (!defs.dataTypes.includes(dataType)) {
             throw new Error("unknown data type "+dataType);
             return
@@ -122,18 +129,22 @@ class Frame {
         this.iconElement.setAttribute('onclick', `project.selectFrame(${frameNumber})`)
         document.getElementById('frames').append(this.iconElement)
 
-        let c = project.colorConfig.defaultColor
-        this.leds = [
-            [c,c,c,c, c,c,c,c],
-            [c,c,c,c, c,c,c,c],
-            [c,c,c,c, c,c,c,c],
-            [c,c,c,c, c,c,c,c],
+        if (frameData.length == 0) {
+            let c = project.colorConfig.defaultColor
+            this.leds = [
+                [c,c,c,c, c,c,c,c],
+                [c,c,c,c, c,c,c,c],
+                [c,c,c,c, c,c,c,c],
+                [c,c,c,c, c,c,c,c],
 
-            [c,c,c,c, c,c,c,c],
-            [c,c,c,c, c,c,c,c],
-            [c,c,c,c, c,c,c,c],
-            [c,c,c,c, c,c,c,c]
-        ]
+                [c,c,c,c, c,c,c,c],
+                [c,c,c,c, c,c,c,c],
+                [c,c,c,c, c,c,c,c],
+                [c,c,c,c, c,c,c,c]
+            ]
+        } else {
+            this.leds = frameData
+        }
     }
 
     renderPixel(row, col) {
@@ -238,6 +249,54 @@ document.getElementById('leds').addEventListener('mousedown', (e) => {
 })
 
 
+leds.import = async function () {
+    function openFile() {
+        return new Promise((resolve, reject) => {
+            const input = document.createElement('input')
+            input.type = 'file'
+
+            input.onchange = () => {
+                const file = input.files[0]
+                if (!file) {
+                    reject('No file selected')
+                    return
+                }
+
+                const reader = new FileReader()
+                reader.onload = () => resolve(reader.result)
+                reader.onerror = () => reject(reader.error)
+                reader.readAsText(file)
+            }
+
+            input.click()
+        })
+    }
+
+    let file = await openFile()
+    let data
+
+    try {
+        data = JSON.parse(file)
+    } catch (e) {
+        console.log(e, file)
+        alert(e, file)
+        return
+    }
+
+    document.getElementById('frames').innerHTML = ''
+    project = new Project({
+        dataType: data.dataType
+    })
+
+    for (let i = 0; i < data.frames.length; i++) {
+        const frame = data.frames[i];
+        project.addFrame(frame.leds)
+    }
+
+    console.log('imported file', file)
+}
+
+
 leds.init = function () {
     let html = ''
     for (let i = 0; i < 64; i++) {
@@ -258,7 +317,7 @@ leds.init = function () {
     document.getElementById('leds').innerHTML = html
 
     project = new Project({
-        dataType: '8b',
-        lightBleedCanvas: document.getElementById('leds-light-bleed')
+        dataType: '8b'
     })
+    project.addFrame()
 }

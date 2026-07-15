@@ -200,9 +200,6 @@ class Payload {
 
         let dataToSend = defs.operations[this.op].code
         if (defs.operations[this.op].needsArgs) {
-            if (this.args.length < 6) {
-                this.args = this.args.padEnd(6,'0')
-            }
             dataToSend += this.args
         }
 
@@ -230,6 +227,8 @@ class Payload {
                 }, this)
             }
             let response = divideHexStringInBytes(await serial.send(this.otherData))
+            console.log(response);
+            
         } else {
             let l = response.length
             response = response.slice(4, l)
@@ -245,6 +244,21 @@ class Payload {
 
 
 payloads = {history:[]}
+
+payloads.showFrame = async function (frameBytes) {
+    if (frameBytes.length != 128) {
+        return {
+            ok: false,
+            message: 'framebytes length invalid (should be 64byets)'
+        }
+    }
+    let p = new Payload({
+        operation: 'readMemory',
+        otherData: frameBytes
+    })
+    let response = await p.execute()
+    return response
+}
 
 payloads.readMemory = async function (start, offset) {
     let args = intToHex(start).padStart(4,'0')
