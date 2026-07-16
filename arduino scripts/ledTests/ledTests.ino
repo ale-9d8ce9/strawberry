@@ -2,7 +2,7 @@
 
 #define LED_PIN     9
 #define NUM_LEDS    64
-#define BRIGHTNESS  5
+#define BRIGHTNESS  10
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 
@@ -49,7 +49,7 @@ void testChase() {
     FastLED.clear();
     leds[i] = CRGB::White;
     FastLED.show();
-    delay(40);
+    delay(80);
   }
   FastLED.clear();
   FastLED.show();
@@ -58,10 +58,10 @@ void testChase() {
 
 // Test 3: Rainbow sweep across the strip
 void testRainbow() {
-  for (int hueShift = 0; hueShift < 512; hueShift += 4) {
+  for (int hueShift = 0; hueShift < 1024; hueShift += 4) {
     fill_rainbow(leds, NUM_LEDS, hueShift, 255 / NUM_LEDS);
     FastLED.show();
-    delay(20);
+    delay(40);
   }
   FastLED.clear();
   FastLED.show();

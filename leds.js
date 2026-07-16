@@ -108,6 +108,16 @@ class Project {
         link.download = 'ledsProject.json'
         link.click()
     }
+
+    async preview(n = 1, d = 50) {
+        for (let i = 0; i < n; i++) {
+            for (let i = 0; i < this.frames.length; i++) {
+                const frame = this.frames[i];
+                console.log(await frame.preview())
+                await delay(d)
+            }
+        }
+    }
 }
 
 

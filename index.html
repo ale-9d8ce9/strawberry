@@ -18,7 +18,24 @@
         <framesPanel>
             <frames id="frames">
             </frames>
-            <button id="addFrame" onclick="project.addFrame()"><img class="icon" src="icons/add.svg"></button>
+            <button id="addFrame">
+                <img class="icon" src="icons/add.svg">
+                <div id="addFramePopup">
+                    <div class="grid">
+                        <div onclick="project.addFrame(0)"></div>
+                        <div onclick="project.addFrame(1)"></div>
+                        <div onclick="project.addFrame(2)"></div>
+                        <div onclick="project.addFrame(3)"></div>
+                        <div onclick="project.addFrame(4)"></div>
+                        <div onclick="project.addFrame(9)"></div>
+                        <div onclick="project.addFrame(5)"></div>
+                        <div onclick="project.addFrame(6)"></div>
+                        <div onclick="project.addFrame(7)"></div>
+                        <div onclick="project.addFrame(8)"></div>
+                    </div>
+                    <div onclick="project.addFrame(10)"></div>
+                </div>
+            </button>
         </framesPanel>
         <leds id="leds"></leds>
         <controls>
