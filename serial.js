@@ -16,14 +16,14 @@ let serial = {
         bufferSize: 510
     },
     filters: [
-        {usbVendorId: 0x1A86, usbProductId: 0x1A86},
+        {usbVendorId: 0x1A86, usbProductId: 0x7523},
         {usbVendorId: 0x2341, usbProductId: 0x0043}, // arduino uno official
     ]
 }
 
 serial.connect = async function () {
     try {
-        serial.port = await navigator.serial.requestPort({filters: []})
+        serial.port = await navigator.serial.requestPort({filters: serial.filters})
         await serial.port.open(serial.serialOptions)
         console.log('connected to', serial.port)
         serial.deviceBusy = false
