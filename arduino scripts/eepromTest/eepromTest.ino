@@ -29,7 +29,6 @@ void setup() {
 void loop() {
 }
 
-
 uint8_t readMem1(uint16_t fullAddress) {
   uint8_t segmentAddress = (fullAddress >> 8) & 0b00000111;
   segmentAddress += 0x50;
