@@ -1,228 +1,109 @@
-#include <avr/wdt.h> // Watchdog Timer library
+#include <Wire.h>
+#include <Wire1.h>
 #include <EEPROM.h>
-#include <FastLED.h>
 
-
-#define SERIAL_SPEED 115200
-#define SERIAL_CONF SERIAL_8O1
-#define BUTTON_PIN 7
-#define GREEN_LED_PIN 2
-#define RED_LED_PIN 10
-#define LED_PIN 9
-#define NUM_LEDS 64
-#define ACCELEROMETER_ADDRESS 0x18
-
-
-#define stsBootComplete   0x1F
-#define stsReady          0xD1
-#define stsWait           0xF0
-#define stsAllOk          0x0F
-#define stsError          0xEE
-#define stsFatalError     0xFE
-#define stsExecuting      0xE0
-
-#define opReadMemory    0x31 // (16 start, 8 offset)
-#define opWriteMemory   0x32 // (16 start, 8 offset) + n data
-#define opShowConnectedLogo 0x11 // (8 bool)
-#define opHardReset     0x02 // no args
-#define opSoftReset     0x01 // no args
-
-#define errUnknown                        0x00
-#define errRangeOutsideOfMemoryCapacity   0x01
-#define errUnknownOperation               0x02
-#define errArgsTooLong                    0x03
-#define errInvalidArgs                    0x04
-
-
-#define rom EEPROM
+#define mem1 Wire1
+#define mem2 Wire
+#define imem EEPROM
 #define usb Serial
-#define fled FastLED
-
-
-uint8_t op = 0;
-uint8_t arg1 = 0;
-uint8_t arg2 = 0;
-uint8_t arg3 = 0;
-
-uint16_t bytecount = 0;
-uint8_t msgLength = 0;
-
-bool connectedLogo = false;
-
-CRGB leds[NUM_LEDS];
-
-
 
 void setup() {
-  usb.begin(SERIAL_SPEED, SERIAL_CONF);
-  pinMode(GREEN_LED_PIN, OUTPUT);
-  pinMode(RED_LED_PIN, OUTPUT);
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(3, OUTPUT);
+  Wire.begin();
+  Wire1.begin();
+  Serial.begin(9600);
+  while (!Serial); 
 
-  fled.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-  fled.setBrightness(5);
-  fill_solid(leds, NUM_LEDS, CRGB::Purple);
-  fled.show();
+  unsigned int memoryAddress = 300; 
 
-  usb.write(stsBootComplete);
-  usb.write(stsAllOk);
-  usb.write(stsReady);
+  Serial.print("writing at address ");
+  Serial.println(memoryAddress);
+
+  writeMem2(memoryAddress, 0xfa);
+  uint8_t data = readMem2(memoryAddress);
+  
+  Serial.print("reading at address");
+  Serial.print(": ");
+  Serial.println(data, 16);
 }
-
 
 void loop() {
-  while (usb.available()) {
-    handleSerial(usb.read());
-    bytecount++;
-    if (msgLength != 0 && bytecount == msgLength) {
-      executePayload();
-    }
-  }
-  delay(500);
-  if (connectedLogo) {
-    digitalWrite(13, !digitalRead(13));
-  }
 }
 
 
-void (*softReset)(void) = 0; // soft reboot
-// full reboot
-void hardReset() {
-  usb.write(stsExecuting);
-  usb.write(op);
-  usb.write(stsAllOk);
-  usb.write(stsWait);
-  wdt_enable(WDTO_15MS);
-  while (1) {}
-}
+uint8_t readMem1(uint16_t fullAddress) {
+  uint8_t segmentAddress = (fullAddress >> 8) & 0b00000111;
+  segmentAddress += 0x50;
+  uint8_t cellAddress = fullAddress & 0xff;
 
+  mem1.beginTransmission(segmentAddress);
+  mem1.write(cellAddress);
+  mem1.endTransmission();
 
-void waitForSerial() {
-  while (usb.available() == 0) {}
-}
-void closeUsbMsgAllOk() {
-  usb.write(stsAllOk);
-  usb.write(stsReady);
-}
+  mem1.requestFrom(segmentAddress, (uint8_t) 1);
+  if (mem1.available()) {
+    return mem1.read();
 
-
-
-void error(uint8_t code) {
-  usb.write(stsError);
-  usb.write(code);
-}
-void fatalError(uint8_t code) {
-  usb.write(stsFatalError);
-  usb.write(code);
-  delay(1500);
-  hardReset();
-}
-
-
-
-void executePayload() {
-  bytecount = 0;
-  msgLength = 0;
-
-  switch (op) {
-    case opHardReset:
-      hardReset();
-      break;
-    case opSoftReset:
-      softReset();
-      break;
-    case opShowConnectedLogo:
-      showConnectedLogo();
-      break;
-    case opReadMemory:
-      readMemory();
-      break;
-    case opWriteMemory:
-      writeMemory();
-      break;
-    default:
-      fatalError(errUnknownOperation);
-      break;
+  } else {
+    usb.println("Error reading mem1");
+    return 0;
   }
 }
 
-void handleSerial(uint8_t input) {
-  switch (bytecount) {
-    case 0:
-      op = input;
-      msgLength = 4;
-      break;
-    case 1:
-      arg1 = input;
-      break;
-    case 2:
-      arg2 = input;
-      break;
-    case 3:
-      arg3 = input;
-      break;
-    default:
-      fatalError(errArgsTooLong);
-      break;
-  }
-}
+void writeMem1(uint16_t fullAddress, uint8_t data) {
+  uint8_t segmentAddress = (fullAddress >> 8) & 0b00000111;
+  segmentAddress += 0x50;
+  uint8_t cellAddress = fullAddress & 0xff;
 
-
-
-void readMemory() {
-  uint16_t start = arg1 << 8 + arg2;
-  uint16_t end = start + arg3;
-
-  if (rom.length() <= end) {
-    fatalError(errRangeOutsideOfMemoryCapacity);
+  mem1.beginTransmission(segmentAddress);
+  mem1.write(cellAddress);
+  mem1.write(data);
+  if (mem1.endTransmission() != 0) {
+    usb.println("Error writing to mem1");
     return;
   }
-  usb.write(stsExecuting);
-  usb.write(op);
-  usb.write(0);
-  usb.write(end-start);
-  for (uint16_t i = start; i < end; i++) {
-    byte val = rom.read(i);
-    usb.write(val);
-  }
-  closeUsbMsgAllOk();
+
+  delay(5);
 }
 
-void writeMemory() {
-  uint16_t start = arg1 << 8 + arg2;
-  uint16_t end = start + arg3;
 
-  if (rom.length() <= end) {
-    fatalError(errRangeOutsideOfMemoryCapacity);
+uint8_t readMem2(uint16_t fullAddress) {
+  uint8_t segmentAddress = (fullAddress >> 8) & 0b00000111;
+  segmentAddress += 0x50;
+  uint8_t cellAddress = fullAddress & 0xff;
+
+  mem2.beginTransmission(segmentAddress);
+  mem2.write(cellAddress);
+  mem2.endTransmission();
+
+  mem2.requestFrom(segmentAddress, (uint8_t) 1);
+  if (mem2.available()) {
+    return mem2.read();
+
+  } else {
+    usb.println("Error reading mem2");
+    return 0;
+  }
+}
+
+void writeMem2(uint16_t fullAddress, uint8_t data) {
+  uint8_t segmentAddress = (fullAddress >> 8) & 0b00000111;
+  segmentAddress += 0x50;
+  uint8_t cellAddress = fullAddress & 0xff;
+
+  mem2.beginTransmission(segmentAddress);
+  mem2.write(cellAddress);
+  mem2.write(data);
+  if (mem2.endTransmission() != 0) {
+    usb.println("Error writing to mem2");
     return;
   }
-  usb.write(stsExecuting);
-  usb.write(op);
-  usb.write(end-start);
-  usb.write(0);
-  for (uint16_t i = start; i < end; i++) {
-    waitForSerial();
-    byte value = usb.read();
-    rom.update(i, value);
-  }
-  closeUsbMsgAllOk();
+
+  delay(5);
 }
 
 
-void showConnectedLogo() {
-  uint8_t show = arg1;
-  if (show != 0x00 && show != 0x01) {
-    error(errInvalidArgs);
-    return;
-  }
-  usb.write(stsExecuting);
-  usb.write(op);
-  usb.write(0x00);
-  usb.write(0x01);
-  usb.write(connectedLogo);
-  connectedLogo = show;
-  digitalWrite(13, 0);
-  closeUsbMsgAllOk();
-}
+
+
+
+
 

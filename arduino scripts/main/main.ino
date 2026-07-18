@@ -21,12 +21,12 @@
 #define stsFatalError     0xFE
 #define stsExecuting      0xE0
 
-#define opReadMemory    0x83 // (16 start, 8 offset)
-#define opWriteMemory   0x87 // (16 start, 8 offset) + n data
-#define opShowConnectedLogo 0x29 // (8 bool)
-#define opHardReset     0x20 // no args
-#define opSoftReset     0x24 // no args
-#define opShowFrame     0x04 // no args
+#define opReadMemory    0x83
+#define opWriteMemory   0x87
+#define opShowConnectedLogo 0x29
+#define opHardReset     0x20
+#define opSoftReset     0x24
+#define opShowFrame     0x04
 
 #define errUnknown                        0x00
 #define errRangeOutsideOfMemoryCapacity   0x01
@@ -62,7 +62,7 @@ void setup() {
   pinMode(3, OUTPUT);
 
   fled.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-  fled.setBrightness(10);
+  fled.setBrightness(3);
   fill_solid(leds, NUM_LEDS, CRGB::Purple);
   fled.show();
 
