@@ -7,7 +7,7 @@
 #include <Adafruit_Sensor.h>
 
 
-#define SERIAL_SPEED 9600
+#define SERIAL_SPEED 115200
 #define SERIAL_CONF SERIAL_8O1
 #define BUTTON_PIN 7
 #define GREEN_LED_PIN 2
@@ -16,6 +16,7 @@
 #define NUM_LEDS 64
 #define ACCELEROMETER_ADDRESS 0x18
 #define MEM_BASE_ADDRESS 0x50
+#define BRIGHTNESS 12
 
 #define NWaterParticles 20
 
@@ -95,7 +96,7 @@ void setup() {
 
   // initialize leds
   fled.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-  fled.setBrightness(5);
+  fled.setBrightness(BRIGHTNESS);
   fill_solid(leds, NUM_LEDS, CRGB::Purple);
   fled.show();
   delay(50);
@@ -118,7 +119,7 @@ void setup() {
   }
 
   // done
-  analogWrite(GREEN_LED_PIN, 5);
+  analogWrite(GREEN_LED_PIN, BRIGHTNESS/2);
   usb.write(stsBootComplete);
   usb.write(stsAllOk);
   usb.write(stsReady);
@@ -186,7 +187,7 @@ uint8_t getLSB(float f) {
     memcpy(&bits, &f, sizeof(bits));
     return (uint8_t)(bits & 0xFF);
 }
-void myupdateRandom(float f1, float f2) {
+void updateMyRandom(float f1, float f2) {
   myrandom ^= getLSB(f1);
   myrandom ^= getLSB(f2);
 }
@@ -477,11 +478,11 @@ void tickWaterSimulation() {
   float x = event.acceleration.x;
   float y = event.acceleration.y;
   elaborateGravityDirection(x, y);
-  myupdateRandom(x,y);
+  updateMyRandom(x,y);
 
   simulate();
-  uint8_t d = x + y;
-  d = 50 - d*2;
+  //uint8_t d = x + y;
+  //d = 50 - d*2;
   //delay(d); 
 }
 
@@ -493,10 +494,26 @@ void elaborateGravityDirection(float x, float y) {
   if (fabs(y) > fabs(x)) {
     gravityWeakDirectionX = (x < 0) ? -1 : 1;
     gravityWeakDirectionY = 0;
+    gravityStrongDirectionY = (y > 1) - (y < -1);
+
+    if (fabs(fabs(y) - fabs(x)) < 3) {
+      gravityStrongDirectionX = (x > 1) - (x < -1);
+    } else {
+      gravityStrongDirectionX = 0;
+    }
+
   } else {
     gravityWeakDirectionY = (y < 0) ? -1 : 1;
     gravityWeakDirectionX = 0;
+    gravityStrongDirectionX = (x > 1) - (x < -1);
+
+    if (fabs(fabs(y) - fabs(x)) < 3) {
+      gravityStrongDirectionY = (y > 1) - (y < -1);
+    } else {
+      gravityStrongDirectionY = 0;
+    }
   }
+
 }
 
 
@@ -639,7 +656,7 @@ void moveParticleY(uint8_t i) {
     setCell0(x, y);
     return;
   }
-  if (((myrandom^i) & 3) != 0) return;
+  if (((myrandom^i) & 7) != 0) return;
   cell = (rowDown >> (x - gravityWeakDirectionX)) & 1;
   if (cell) {
     setCell1(x, y);
@@ -695,7 +712,7 @@ void moveParticleX(uint8_t i) {
     setCell0(x, y);
     return;
   } 
-  if (((myrandom^i) & 3) != 0) return;
+  if (((myrandom^i) & 7) != 0) return;
   rowDown = cells[y - gravityWeakDirectionY];
   cell = (rowDown >> x) & 1;
   if (cell) {
@@ -713,7 +730,7 @@ void simulate() {
   for (uint8_t i = 0; i < NWaterParticles; i++) {
     movecell(i);
     uint8_t led = ledIndexFromXY(waterParticles[i].x, waterParticles[i].y);
-    leds[led] = CRGB(0, 0, 255);
+    leds[led] = CRGB(0, 128, 255);
   }
   FastLED.show();
 }
