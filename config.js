@@ -11,7 +11,11 @@ const config = {
     },
 
     serialMinWaitForResponse: 25,
-    serialResponseWaitCheck: 25
+    serialResponseWaitCheck: 25,
+
+    settings: {
+        slideFramePixelAmount: 1
+    }
 }
 
 const defs = {

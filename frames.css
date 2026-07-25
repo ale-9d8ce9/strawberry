@@ -6,6 +6,8 @@ framesPanel > *{
 framesPanel {
     background-color: #d5d5d54d;
     padding-bottom: var(--frames-width);
+    position: fixed;
+    z-index: 2;
 }
 
 #frames {
@@ -20,7 +22,6 @@ framesPanel {
     padding: .5rem;
 }
 #addFrame {
-    position: sticky;
     bottom: 0;
     aspect-ratio: 1/1;
     background-color: #0b9c1775;

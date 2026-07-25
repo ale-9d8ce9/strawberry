@@ -67,3 +67,42 @@ buttonGroup {
     opacity: 1;
     translate: calc(-100% - .5rem) -50%;
 }
+
+
+
+
+input[type='range'] {
+    appearance: none;
+    position: relative;
+    height: var(--slider-height);
+    background-color: rebeccapurple;
+    border-radius: var(--slider-height);
+
+    &::after, &::before {
+        content: attr(data-value);
+        position: absolute;
+        top: 0;
+        left: var(--v);
+        translate: calc(var(--v) * -1) 0;
+        aspect-ratio: 1/1;
+        height: var(--slider-height);
+        background-color: #a2a2a2;
+        display: flex;
+        font-size: calc(var(--slider-height) * .6);
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        scale: .8;
+        transition: .1s;
+        pointer-events: none;
+    }
+
+    &::before {
+        content: '';
+    }
+
+    &:active::after {
+        top: -120%;
+        scale: 1.1;
+    }
+}

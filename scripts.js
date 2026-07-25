@@ -48,6 +48,29 @@ function hexToInt(hex) {
 
 
 
+function slideArray(array, n, pad) {
+    let newArray = []
+    if (n > 0) {
+        for (let i = 0; i < n; i++) {
+            newArray.push(pad)
+        }
+        n = 0
+    } else {
+        n *= -1
+    }
+
+    for (let i = n; i < array.length && newArray.length != array.length; i++) {
+        newArray.push(array[i])        
+    }
+
+    while (newArray.length < 8) {
+        newArray.push(pad)
+    }
+    return newArray
+}
+
+
+
 function diviteTouchTargetInGrid(e, sizeX, sizeY, target) { // takes an event and returns in which grid section of the target element the event happened
     if (target === undefined) {
         target = e.target
@@ -91,9 +114,6 @@ function loadImage(src) {
     })
 }
 
-
-function alignLedsShadow() {
-}
 
 
 async function start() {

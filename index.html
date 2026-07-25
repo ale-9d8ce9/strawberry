@@ -22,18 +22,18 @@
                 <img class="icon" src="icons/add.svg">
                 <div id="addFramePopup">
                     <div class="grid">
-                        <div onclick="project.addFrame([], 0)"></div>
-                        <div onclick="project.addFrame([], 1)"></div>
-                        <div onclick="project.addFrame([], 2)"></div>
-                        <div onclick="project.addFrame([], 3)"></div>
-                        <div onclick="project.addFrame([], 4)"></div>
-                        <div onclick="project.addFrame([], 9)"></div>
-                        <div onclick="project.addFrame([], 5)"></div>
-                        <div onclick="project.addFrame([], 6)"></div>
-                        <div onclick="project.addFrame([], 7)"></div>
-                        <div onclick="project.addFrame([], 8)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a, -a)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0, -a)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a, -a)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a,  0)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0,  0)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a,  0)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a,  a)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0,  a)"></div>
+                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a,  a)"></div>
                     </div>
-                    <div onclick="project.addFrame([], 10)"></div>
+                    <input type="range" min="1" max="7" onchange="config.settings.slideFramePixelAmount = this.value" oninput="this.setAttribute('data-value', this.value);this.style.setProperty('--v', (parseInt(this.value-1)*100/6)+'%')" value="1" data-value="1" style="--v:0%;" class="showValue">
+                    <div onclick="project.addFrame()"></div>
                 </div>
             </button>
         </framesPanel>

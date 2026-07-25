@@ -25,15 +25,7 @@ class Project {
         this.frames = []
     }
 
-    addFrame(frameData = [], direction = 10, playAnimation = false) {
-        switch (direction) {
-            case 9:
-                frameData = structuredClone(this.frames[this.selectedFrame].leds)
-                break;
-        
-            default:
-                break;
-        }
+    addFrame(frameData = [], playAnimation = false) {
         let nframe = new Frame(this.dataType, this.frames.length, frameData)
 
         if (playAnimation) {
@@ -42,6 +34,35 @@ class Project {
 
         this.frames.push(nframe)
         this.selectFrame(this.frames.length -1)
+    }
+
+    duplicateFrame(frameN, offsetX = 0, offsetY = 0) {
+        function newRow(c) {
+            return [c,c,c,c, c,c,c,c]
+        }
+        let newFrameData = []
+        let c = this.colorConfig.defaultColor
+        frameN < 0 ? frameN = this.selectedFrame : null
+        let frameData = structuredClone(this.frames[frameN].leds)
+
+        if (offsetY > 0) {
+            for (let i = 0; i < offsetY; i++) {
+                newFrameData.push(newRow(c))
+            }
+            offsetY = 0
+        } else {
+            offsetY *= -1
+        }
+
+        for (let i = offsetY; i < frameData.length && newFrameData.length < 8; i++) {
+            const row = frameData[i]
+            newFrameData.push(slideArray(row, offsetX, c))
+        }
+
+        while (newFrameData.length < 8) {
+            newFrameData.push(newRow(c))
+        }
+        this.addFrame(newFrameData)
     }
 
     selectFrame(nframe) {
@@ -161,6 +182,9 @@ class Frame {
                 [c,c,c,c, c,c,c,c]
             ]
         } else {
+            if (frameData.length != 8 || frameData[0].length != 8) {
+                throw new Error("invalid framedata");
+            }
             this.leds = frameData
         }
     }
