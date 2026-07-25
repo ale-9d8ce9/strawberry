@@ -289,23 +289,16 @@ payloads.writeMemory = async function (start, offset, otherData) {
     return response
 }
 
-payloads.showConnectedLogo = async function (show) {
-    let s = show ? '01' : '00'
+payloads.setMode = async function (mode) {
+    let s = hexToInt(mode) < 3 ? mode : '00'
     let p = new Payload({
-        operation: 'showConnectedLogo',
+        operation: 'setMode',
         args: s
     })
     let response = await p.execute()
     return response
 }
 
-payloads.softReset = async function () {
-    let p = new Payload({
-        operation: 'softReset',
-    })
-    let response = await p.execute()
-    return response
-}
 payloads.hardReset = async function () {
     let p = new Payload({
         operation: 'hardReset',

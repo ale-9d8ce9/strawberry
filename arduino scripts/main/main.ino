@@ -14,26 +14,25 @@
 #define RED_LED_PIN 10
 #define LED_PIN 9
 #define NUM_LEDS 64
-#define ACCELEROMETER_ADDRESS 0x18
-#define MEM_BASE_ADDRESS 0x50
 #define BRIGHTNESS 12
 
 #define NWaterParticles 20
 
 
-#define stsBootComplete   0x1F
+#define stsBootComplete   0xBD
+#define stsBooting        0xB1
 #define stsReady          0xD1
 #define stsWait           0xF0
 #define stsAllOk          0x0F
 #define stsError          0xEE
 #define stsFatalError     0xFE
 #define stsExecuting      0xE0
+#define stsDownloadMode   0xD8
 
 #define opReadMemory    0x83
 #define opWriteMemory   0x87
 #define opSetMode       0x29
 #define opHardReset     0x20
-#define opSoftReset     0x24
 #define opShowFrame     0x04
 
 #define errUnknown                        0x00
@@ -42,6 +41,10 @@
 #define errArgsTooLong                    0x03
 #define errInvalidArgs                    0x04
 #define errNoAccelerometer                0x05
+#define errNoMem1                         0x06
+#define errNoMem2                         0x07
+#define errNoIMem                         0x08
+#define errInvalidXOR                     0x09
 
 
 #define usb Serial
@@ -59,9 +62,9 @@ uint8_t arg3 = 0;
 
 uint8_t bytecount = 0;
 uint8_t msgLength = 0;
-uint8_t serialXOR = 0;
 
-bool mode = true;
+typedef enum {waterSimulation, animation, serial} MODE;
+MODE mode = waterSimulation;
 
 
 CRGB leds[NUM_LEDS];
@@ -85,20 +88,22 @@ uint8_t myrandom = 0;
 
 void setup() {
   MCUSR = 0;wdt_disable();
+  usb.begin(SERIAL_SPEED, SERIAL_CONF);
+  usb.write(stsBooting);
+
   mem1.begin();
   mem2.begin();
-  usb.begin(SERIAL_SPEED, SERIAL_CONF);
   pinMode(GREEN_LED_PIN, OUTPUT);
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(3, OUTPUT);
-  analogWrite(GREEN_LED_PIN, 10);
+  analogWrite(GREEN_LED_PIN, BRIGHTNESS/2);
 
   // initialize leds
   fled.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   fled.setBrightness(BRIGHTNESS);
   fill_solid(leds, NUM_LEDS, CRGB::Purple);
   fled.show();
+  pinMode(3, OUTPUT);
   delay(50);
   digitalWrite(3, LOW);
 
@@ -118,20 +123,22 @@ void setup() {
     setCell0(x, y);
   }
 
+  delay(50);
+
+  // check to go in serial mode
+  if (usb.available() && usb.read() == stsDownloadMode) {
+    fill_solid(leds, CRGB::Green);
+    fled.show();
+    usb.write(stsDownloadMode);
+    usb.write(stsReady);
+    mode = serial;
+    serialModeLoop();
+  }
+
   // done
-  analogWrite(GREEN_LED_PIN, BRIGHTNESS/2);
   usb.write(stsBootComplete);
   usb.write(stsAllOk);
-  usb.write(stsReady);
-  /*
-  while (usb.available()) {
-    handleSerial(usb.read());
-    bytecount++;
-    if (msgLength != 0 && bytecount == msgLength +1) {
-      executePayload();
-    }
-  }
-  digitalWrite(GREEN_LED_PIN, mode);*/
+  usb.end();
 }
 
 
@@ -139,12 +146,123 @@ void setup() {
 
 
 void loop() {
-  if (mode) {
+  if (mode == waterSimulation) {
     tickWaterSimulation();
+    delay(50);
+  } else {
+    // animation
   }
-  delay(50);
 }
 
+
+
+
+
+// usb
+
+
+
+void serialModeLoop() {
+  while (mode == serial) {
+    waitForSerial();
+    handleSerial(usb.read());
+    bytecount++;
+    usb.write(bytecount);
+    if (msgLength != 0 && bytecount == msgLength) {
+      executePayload();
+    }
+  }
+}
+
+
+
+
+void executePayload() {
+  bytecount = 0;
+  msgLength = 0;
+
+  switch (op) {
+    case opHardReset:
+      hardReset();
+      break;
+    case opSetMode:
+      setMode();
+      break;
+    case opReadMemory:
+      readMemory();
+      break;
+    case opWriteMemory:
+      writeMemory();
+      break;
+    case opShowFrame:
+      showFrame();
+      break;
+    default:
+      error(errUnknownOperation);
+      break;
+  }
+}
+
+void handleSerial(uint8_t input) {
+  switch (bytecount) {
+    case 0:
+      op = input;
+      msgLength = op & 0b00000011;
+      msgLength++;
+      usb.write(msgLength);
+      break;
+    case 1:
+      arg1 = input;
+      break;
+    case 2:
+      arg2 = input;
+      break;
+    case 3:
+      arg3 = input;
+      break;
+    default:
+      error(errArgsTooLong);
+      break;
+  }
+}
+
+
+
+
+void showFrame() {
+  usb.write(stsExecuting);
+  usb.write(op);
+  usb.write(64);
+  usb.write(0);
+  for (uint8_t i = 0; i < 64; i++) {
+    waitForSerial();
+    uint8_t value = usb.read();
+    uint8_t r = value & 0b11000000;
+    uint8_t g = value & 0b00110000;
+    g = g << 2;
+    uint8_t b = value & 0b00001100;
+    b = b << 4;
+    uint8_t index = ledIndexFromXY(i%8, i/8);
+    leds[index] = CRGB(r, g, b);
+  }
+  fled.show();
+  closeUsbMsgAllOk();
+}
+
+
+
+
+
+void setMode() {
+  uint8_t newMode = arg1;
+  if (newMode > 2) {
+    error(errInvalidArgs);
+    return;
+  }
+  usb.write(stsExecuting);
+  usb.write(op);
+  closeUsbMsgAllOk();
+}
 
 
 
@@ -218,106 +336,6 @@ void fatalError(uint8_t code) {
 
 
 
-// usb
-
-
-
-
-
-void executePayload() {
-  bytecount = 0;
-  msgLength = 0;
-  serialXOR = 0;
-
-  switch (op) {
-    case opHardReset:
-      hardReset();
-      break;
-    case opSetMode:
-      setMode();
-      break;
-    case opReadMemory:
-      readMemory();
-      break;
-    case opWriteMemory:
-      writeMemory();
-      break;
-    case opShowFrame:
-      showFrame();
-      break;
-    default:
-      fatalError(errUnknownOperation);
-      break;
-  }
-}
-
-void handleSerial(uint8_t input) {
-  serialXOR ^= input;
-  switch (bytecount) {
-    case 0:
-      op = input;
-      msgLength = op & 0b00000011;
-      msgLength++;
-      break;
-    case 1:
-      arg1 = input;
-      break;
-    case 2:
-      arg2 = input;
-      break;
-    case 3:
-      arg3 = input;
-      break;
-    default:
-      fatalError(errArgsTooLong);
-      break;
-  }
-}
-
-
-
-
-void showFrame() {
-  usb.write(stsExecuting);
-  usb.write(op);
-  usb.write(64);
-  usb.write(0);
-  for (uint8_t i = 0; i < 64; i++) {
-    waitForSerial();
-    uint8_t value = usb.read();
-    uint8_t r = value & 0b11000000;
-    uint8_t g = value & 0b00110000;
-    g = g << 2;
-    uint8_t b = value & 0b00001100;
-    b = b << 4;
-    uint8_t index = ledIndexFromXY(i%8, i/8);
-    leds[index] = CRGB(r, g, b);
-  }
-  fled.show();
-  closeUsbMsgAllOk();
-}
-
-
-
-
-
-void setMode() {
-  uint8_t newMode = arg1;
-  if (newMode != 0x00 && newMode != 0x01) {
-    error(errInvalidArgs);
-    return;
-  }
-  usb.write(stsExecuting);
-  usb.write(op);
-  usb.write(0x00);
-  usb.write(0x01);
-  usb.write(mode);
-  mode = newMode;
-  digitalWrite(13, 0);
-  closeUsbMsgAllOk();
-}
-
-
 
 
 
@@ -336,7 +354,7 @@ void readMemory() {
   uint16_t end = start + arg3;
 
   if (imem.length() <= end) {
-    fatalError(errRangeOutsideOfMemoryCapacity);
+    error(errRangeOutsideOfMemoryCapacity);
     return;
   }
   usb.write(stsExecuting);
@@ -356,7 +374,7 @@ void writeMemory() {
   uint16_t end = start + arg3;
 
   if (imem.length() <= end) {
-    fatalError(errRangeOutsideOfMemoryCapacity);
+    error(errRangeOutsideOfMemoryCapacity);
     return;
   }
   usb.write(stsExecuting);
@@ -391,7 +409,7 @@ uint8_t readMem1(uint16_t fullAddress) {
     return mem1.read();
 
   } else {
-    usb.println("Error reading mem1");
+    error(errNoMem1);
     return 0;
   }
 }
@@ -405,7 +423,7 @@ void writeMem1(uint16_t fullAddress, uint8_t data) {
   mem1.write(cellAddress);
   mem1.write(data);
   if (mem1.endTransmission() != 0) {
-    usb.println("Error writing to mem1");
+    error(errNoMem1);
     return;
   }
 
@@ -430,7 +448,7 @@ uint8_t readMem2(uint16_t fullAddress) {
     return mem2.read();
 
   } else {
-    usb.println("Error reading mem2");
+    error(errNoMem2);
     return 0;
   }
 }
@@ -444,7 +462,7 @@ void writeMem2(uint16_t fullAddress, uint8_t data) {
   mem2.write(cellAddress);
   mem2.write(data);
   if (mem2.endTransmission() != 0) {
-    usb.println("Error writing to mem2");
+    error(errNoMem2);
     return;
   }
 

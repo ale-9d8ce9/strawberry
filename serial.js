@@ -54,8 +54,8 @@ serial.reconnect = async function () {
     serial.history.push({dir: 'received', content: serial.currentlyReceiving})
     serial.currentlyReceiving = ''
     console.log('reconnected')
-    serial.deviceConnected = true
-    return true
+    serial.deviceConnected = await serial.sendToDownloadMode()
+    return serial.deviceConnected
 }
 
 serial.read = async function () {
@@ -119,24 +119,31 @@ serial.write = async function (uint8Array) {
 
 }
 
-serial.send = async function (hexString) {
-    if (!serial.deviceConnected) {
-        console.error('can\'t send data\nno device connected', hexString)
+serial.send = async function (hexString, xor = false) {
+    if (!serial.port) {
+        console.error('can\'t send data\nno open port', hexString)
         return false
     }
-    let uint8 = hexStringToUint8Array(hexString)
+    let uint8 = hexStringToUint8Array(hexString, xor)
+    if (xor) {
+        hexString += intToHex( uint8[uint8.length-1] )
+    }
+
     if (serial.currentlyReceiving !== '') {
         serial.history.push({dir: 'received', content: serial.currentlyReceiving})
         serial.currentlyReceiving = ''
     }
+
     serial.history.push({dir: 'sent', content: hexString})
     serial.write(uint8)
+
     if (config.logAllSerial) {
         console.log('tx', hexString)
     }
     if (config.updateSerialMonitor) {
         serial.updateSerialMonitor()
     }
+
     return await serial.waitForResponse()
 }
 
@@ -170,6 +177,16 @@ serial.clearHistory = function () {
     console.log('serial history cleared')
 }
 
+serial.sendToDownloadMode = async function () {
+    if (!serial.port) {
+        console.error('no device connected to send to downloadMode')
+        return false
+    }
+    await serial.resetDevice()
+    await delay(1380)
+    let response = await serial.send(defs.status.downloadMode, false)
+    return response == defs.status.downloadMode + defs.status.ready
+}
 
 serial.updateSerialMonitor = function () {
     function renderMessage(message) {

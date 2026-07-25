@@ -4,11 +4,19 @@ function uint8ArrayToHexString(uint8Array, separator = '') {
     .join(separator);
 }
 
-function hexStringToUint8Array(hexString, separator = '') {
-  const parts = separator
-    ? hexString.split(separator)
-    : hexString.match(/.{1,2}/g);
-  return new Uint8Array(parts.map(byte => parseInt(byte, 16)));
+function hexStringToUint8Array(hexString, xor = false, separator = '') {
+    const parts = separator
+        ? hexString.split(separator)
+        : hexString.match(/.{1,2}/g);
+    let nums = parts.map(byte => parseInt(byte, 16))
+    if (xor) {
+        xorByte = 0
+        for (let i = 0; i < nums.length; i++) {
+            xorByte ^= nums[i];
+        }
+        nums.push(xorByte)
+    }
+    return new Uint8Array(nums);
 }
 
 function uint8ArrayToTxt(uint8Array) {

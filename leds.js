@@ -25,7 +25,15 @@ class Project {
         this.frames = []
     }
 
-    addFrame(frameData = [], playAnimation = false) {
+    addFrame(frameData = [], direction = 10, playAnimation = false) {
+        switch (direction) {
+            case 9:
+                frameData = structuredClone(this.frames[this.selectedFrame].leds)
+                break;
+        
+            default:
+                break;
+        }
         let nframe = new Frame(this.dataType, this.frames.length, frameData)
 
         if (playAnimation) {

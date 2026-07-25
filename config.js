@@ -16,13 +16,15 @@ const config = {
 
 const defs = {
     status: {
-        bootComplete: '1F',
+        bootComplete: 'BD',
+        booting: 'B1',
         ready: 'D1',
         wait: 'F0',
         allOk: '0F',
         error: 'EE',
         fatalError: 'FE',
-        executing: 'E0'
+        executing: 'E0',
+        downloadMode: 'D8'
     },
     operations: {
         readMemory: {
@@ -39,21 +41,15 @@ const defs = {
             argsLength: 3,
             returnsData: false
         },
-        showConnectedLogo: {
+        setMode: {
             code: '29',
             needsArgs: true,
             needsOtherData: false,
             argsLength: 1,
-            returnsData: true
+            returnsData: false
         },
         hardReset: {
             code: '20',
-            needsArgs: false,
-            needsOtherData: false,
-            returnsData: false
-        },
-        softReset: {
-            code: '24',
             needsArgs: false,
             needsOtherData: false,
             returnsData: false
@@ -71,6 +67,10 @@ const defs = {
         ['02','unknown operation'],
         ['03','args too long'],
         ['04','invalid args'],
+        ['05','no accelerometer'],
+        ['06','no mem 1'],
+        ['07','no mem 2'],
+        ['08','no internal mem'],
     ]),
 
     dataTypes: ['8b','6b'],

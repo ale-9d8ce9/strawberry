@@ -36,6 +36,25 @@ framesPanel {
         scale: 1;
     }
 
+    #addFramePopup {
+        display: inline-flex;
+        background-color: red;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        translate: 0 -50%;
+
+        .grid {
+            display: grid;
+            grid-template-columns: auto auto auto;
+            div {
+                aspect-ratio: 1/1;
+                width: var(--icon-size);
+                outline: .1rem solid blue;
+            }
+        }
+    }
+
 }
 @keyframes rotate90 {
     0% {
