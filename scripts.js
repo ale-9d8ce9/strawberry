@@ -96,12 +96,44 @@ function moveWindow(e, id) {
     document.getElementsByClassName('window')[id].style.top = (parseInt(document.getElementsByClassName('window')[id].style.top)+e.movementY) +'px'
     document.getElementsByClassName('window')[id].style.left = (parseInt(document.getElementsByClassName('window')[id].style.left)+e.movementX) +'px'
 }
-document.getElementsByClassName('window-handle')[0].addEventListener('mousemove', (e) => {
-    moveWindow(e, 0)
-})
-document.getElementsByClassName('window-handle')[1].addEventListener('mousemove', (e) => {
-    moveWindow(e, 1)
-})
+
+
+
+
+function inputRangeUpdates(elm) {
+    let min = parseInt(elm.min)
+    let max = parseInt(elm.max)
+    let value = parseInt(elm.value)
+    elm.setAttribute('data-value', value)
+
+    value -= min
+    max -= min
+    value *= 100
+    value /= max
+    
+    elm.style.setProperty('--v', value + '%')
+}
+
+
+
+
+function runShortcut(e) {
+    let key = e.key.toLowerCase()
+    if (e.metaKey) {
+        key = 'M' + key
+    }
+    if (e.ctrlKey) {
+        key = 'C' + key
+    }
+    if (e.altKey) {
+        key = 'A' + key
+    }
+
+    if (defs.shortcutsEnabled.includes(key)) {
+        e.preventDefault()
+        defs.shortcuts[key](e)
+    }
+}
 
 
 
@@ -117,6 +149,9 @@ function loadImage(src) {
 
 
 async function start() {
+    if (config.useShortcuts) {
+        setupShortcuts()
+    }
     payloads.initMonitor()
     leds.init()
 
@@ -124,5 +159,6 @@ async function start() {
     document.documentElement.style.setProperty('--transition-normal',config.transitionSpeed.normal+'s')
     document.documentElement.style.setProperty('--transition-slow',config.transitionSpeed.slow+'s')
     document.documentElement.style.setProperty('--transition-ledsRotation',config.transitionSpeed.ledsRotation+'s')
+    document.documentElement.style.setProperty('--transition-settings',config.transitionSpeed.settings+'s')
 }
 window.onload = start

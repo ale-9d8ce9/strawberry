@@ -3,27 +3,39 @@ settings {
     aspect-ratio: 1/1;
     position: absolute;
     top: 50%;
-    left: calc(50% - var(--frames-width));
+    left: calc(calc(100% - var(--controls-width) - var(--frames-width)) / 2 + var(--frames-width));
     translate: -50% -50%;
-    transition: var(--transition-slow);
-    /* background-color: #ff000074; */
+    transition: var(--transition-settings);
+    background-image: url(settingsTest.png);
+    transition-delay: opacity calc(var(--transition-settings) / 2);
 
     pointer-events: none;
+    mix-blend-mode: darken;
+    opacity: 0;
 }
 
 
 page.showSettings {
     leds {
         left: 50% !important;
+        background-color: #000;
 
         led {
             scale: 1;
             border-radius: 0;
+            background-color: #fff !important;
+        }
+
+        #leds-light-bleed {
+            opacity: 0;
+            transition-delay: 0s;
         }
     }
 
     settings {
         left: 50%;
+        opacity: 1;
+        transition-delay: 0s;
     }
 
 

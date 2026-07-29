@@ -1,18 +1,34 @@
 :root {
-    --page-bg: #121212;
+    --clr-base: oklch(0.72 0.09 277.96);
+
+    --clr: oklch(from var(--clr-base) min(0.85, l) min(0.2, c) h);
+    --bg0: oklch(from var(--clr) 0.20 min(0.04, c) h);
+    --bg1: oklch(from var(--clr) 0.25 min(0.03, c) h);
+    --txt: oklch(from var(--clr) 0.8 0 0);
+    --txt1: oklch(from var(--txt) calc(l * 0.9) c h);
+    --clr-d: oklch(from var(--clr) l calc(c / 3) h);
+    --clr-bg: oklch(86.07% 0.0001 271.152 / 0.178);
+
+
+    --page-bg: oklch(0.15 0 0);
+    --hitbox-bg: #f4000000;
 
     --icon-container-bg: #000;
 
-    --ui-view-border-padding: 1rem;
+    --ui-view-border-padding: .6rem;
+    --element-padding: .2rem;
     --icon-size: 2rem;
+    --hitbox-size: 2rem;
 
-    --frames-width: 5rem;
+    --frames-width: 6rem;
     --controls-width: 15rem;
     --page-height: 100vh;
     --leds-margin: 2rem;
-
     --leds-max-w: calc(100vw - var(--controls-width) - var(--frames-width) - 2*var(--leds-margin));
 
     --settings-border-radius: 1rem;
+
     --slider-height: 1.5rem;
+
+    --title-margin-small: .6rem;
 }

@@ -6,6 +6,12 @@ controls {
 
 
 
+#selectedColor {
+    height: 1rem;
+    width: 100%;
+    
+}
+
 
 #connectBtn {
     width: 100%;

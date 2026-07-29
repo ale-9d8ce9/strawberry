@@ -15,33 +15,27 @@
 </head>
 <body>
     <page>
-        <framesPanel>
+
+        <framesPanel class="panel">
             <frames id="frames">
             </frames>
             <button id="addFrame">
                 <img class="icon" src="icons/add.svg">
-                <div id="addFramePopup">
-                    <div class="grid">
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a, -a)"></div>
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0, -a)"></div>
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a, -a)"></div>
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a,  0)"></div>
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0,  0)"></div>
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a,  0)"></div>
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a,  a)"></div>
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0,  a)"></div>
-                        <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a,  a)"></div>
-                    </div>
-                    <input type="range" min="1" max="7" onchange="config.settings.slideFramePixelAmount = this.value" oninput="this.setAttribute('data-value', this.value);this.style.setProperty('--v', (parseInt(this.value-1)*100/6)+'%')" value="1" data-value="1" style="--v:0%;" class="showValue">
-                    <div onclick="project.addFrame()"></div>
-                </div>
             </button>
         </framesPanel>
+
         <leds id="leds"></leds>
-        <controls>
+
+        <controls class="panel">
             <canvas id="picker"></canvas>
+            <smallTitle>selected color</smallTitle>
             <div id="selectedColor"></div>
-            <button onclick="document.querySelector('page').classList.toggle('showSettings')">settins</button>
+            <smallTitle>project colors</smallTitle>
+            <div id="projectColorsContainer">
+                <canvas id="projectColors"></canvas>
+            </div>
+            
+            <button onclick="settings.toggle()">settins</button>
             <buttonGroup>
                 <button onclick="serial.connect()" id="connectBtn">connect</button>
                 <button id="flash">flash</button>
@@ -62,6 +56,26 @@
                 </div>
             </div>
         </controls>
+
+        <div id="addFramePopup">
+            <smallTitle>duplicate</smallTitle>
+            <grid>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a, -a)"                        ><img src="icons/arrow-top-left.svg"></div>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0, -a)" style="rotate: 180deg;"><img src="icons/arrow-down.svg"></div>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a, -a)" style="rotate: 90deg;" ><img src="icons/arrow-top-left.svg"></div>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a,  0)" style="rotate: 90deg;" ><img src="icons/arrow-down.svg"></div>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0,  0)"                        ><img src="icons/duplicate.svg"></div>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a,  0)" style="rotate: -90deg;"><img src="icons/arrow-down.svg"></div>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1, -a,  a)" style="rotate: -90deg;"><img src="icons/arrow-top-left.svg"></div>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  0,  a)"                        ><img src="icons/arrow-down.svg"></div>
+                <div onclick="a = config.settings.slideFramePixelAmount; project.duplicateFrame(-1,  a,  a)" style="rotate: 180deg;"><img src="icons/arrow-top-left.svg"></div>
+            </grid>
+            <smallTitle>movement</smallTitle>
+            <input type="range" min="1" max="7" onchange="config.settings.slideFramePixelAmount = this.value" value="1">
+            <smallTitle>empty</smallTitle>
+            <div onclick="project.addFrame()"><img src="icons/new-empty.svg"></div>
+        </div>
+
         <settings>
 
         </settings>
@@ -96,8 +110,10 @@
     </errorPopup>
     <script src="config.js"></script>
     <script src="scripts.js"></script>
+    <script src="eventListeners.js"></script>
     <script src="animations.js"></script>
     <script src="leds.js"></script>
+    <script src="settings.js"></script>
     <script src="serial.js"></script>
     <script src="payloads.js"></script>
 </body>

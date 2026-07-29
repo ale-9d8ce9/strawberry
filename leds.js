@@ -25,15 +25,12 @@ class Project {
         this.frames = []
     }
 
-    addFrame(frameData = [], playAnimation = false) {
+    addFrame(frameData = []) {
         let nframe = new Frame(this.dataType, this.frames.length, frameData)
-
-        if (playAnimation) {
-            animations.play(document.getElementById('addFrame').children[0], 'rotate90', 0.2)
-        }
 
         this.frames.push(nframe)
         this.selectFrame(this.frames.length -1)
+        document.getElementsByClassName('frame')[this.selectedFrame].scrollIntoView({behavior: "smooth"})
     }
 
     duplicateFrame(frameN, offsetX = 0, offsetY = 0) {
@@ -94,6 +91,7 @@ class Project {
         document.getElementById('picker').addEventListener('click', (e) => {
             const pos = diviteTouchTargetInGrid(e, this.colorConfig.pickerSize.x, this.colorConfig.pickerSize.y)
             project.selectedColor = pos.y * this.colorConfig.pickerSize.y + pos.x
+            document.getElementById('selectedColor').style.backgroundColor = this.colors[this.selectedColor]
         })
     }
 
@@ -159,14 +157,26 @@ class Frame {
             return
         }
         this.dataType = dataType
+
         // frame icon
         this.iconElement = document.createElement('canvas')
-        this.iconElement.classList.add('frame')
         this.iconElement.id = 'iconFrame'+frameNumber
         this.iconElement.width = 8
         this.iconElement.height = 8
-        this.iconElement.setAttribute('onclick', `project.selectFrame(${frameNumber})`)
-        document.getElementById('frames').append(this.iconElement)
+        let frameContainer = document.createElement('div')
+        frameContainer.id = 'iconFrameContainer'+frameNumber
+        frameContainer.classList.add('frame')
+        frameContainer.setAttribute('onclick', `project.selectFrame(${frameNumber})`)
+        let deleteBtn = document.createElement('button')
+        deleteBtn.addEventListener('click', () => project.deleteFrame(frameNumber))
+        deleteBtn.innerHTML = '<img src="icons/delete.svg">'
+        let moveBtn = document.createElement('button')
+        moveBtn.addEventListener('click', () => project.moveFrame(frameNumber))
+        moveBtn.innerHTML = '<img src="icons/move.svg">'
+        frameContainer.append(this.iconElement)
+        frameContainer.append(deleteBtn)
+        frameContainer.append(moveBtn)
+        document.getElementById('frames').append(frameContainer)
 
         if (frameData.length == 0) {
             let c = project.colorConfig.defaultColor
@@ -281,18 +291,6 @@ class Frame {
 leds = {}
 project = null
 
-document.getElementById('leds').addEventListener('mousemove', (e) => {
-    if (e.buttons !== 1) {
-        return
-    }
-    const pos = diviteTouchTargetInGrid(e, 8, 8, document.getElementById('leds'))
-    project.paint(pos)
-})
-document.getElementById('leds').addEventListener('mousedown', (e) => {
-    const pos = diviteTouchTargetInGrid(e, 8, 8, document.getElementById('leds'))
-    project.paint(pos)
-})
-
 
 leds.import = async function () {
     function openFile() {
@@ -344,7 +342,9 @@ leds.import = async function () {
 
 leds.init = function () {
     let html = ''
+    let p = config.transitionSpeed.settings / 32
     for (let i = 0; i < 64; i++) {
+        let d = parseInt(i / 8) + (i % 8)
         html += `<led class="led" style="
             animation-delay:
                 ${(Math.random()*8+i)/10}s,
@@ -354,6 +354,9 @@ leds.init = function () {
                 ${(Math.random()*4+1)*2}s,
                 ${(Math.random()*4+1)*5}s,
                 ${(Math.random()*4+1)*12}s;
+
+            transition-delay:
+                ${d*p}s;
 
             "></led>`
     }

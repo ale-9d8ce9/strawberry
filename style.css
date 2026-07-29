@@ -7,6 +7,7 @@
     transition-behavior: allow-discrete;
     interpolate-size: allow-keywords;
     user-select: none;
+    color: var(--txt);
 }
 
 body {
@@ -23,6 +24,9 @@ page {
     flex-direction: row;
     perspective: 2000px;
 }
+
+
+
 
 .icon {
     aspect-ratio: 1;
@@ -53,7 +57,6 @@ buttonGroup {
     position: absolute;
     text-wrap: nowrap;
     background-color: var(--icon-container-bg);
-    color: #a2a2a2;
     opacity: 0;
     padding: .5rem;
     border-radius: .5rem;
@@ -70,13 +73,23 @@ buttonGroup {
 
 
 
+.panel {
+    height: 100%;
+    outline: .15rem solid var(--clr);
+    background-color: #4d4d4d95;
+}
+
+
 
 input[type='range'] {
     appearance: none;
     position: relative;
     height: var(--slider-height);
-    background-color: rebeccapurple;
+    background-color: var(--clr-bg);
     border-radius: var(--slider-height);
+    width: calc(100% - var(--element-padding) - var(--element-padding));
+    margin: var(--element-padding);
+    &::-webkit-slider-thumb{opacity: 0;}
 
     &::after, &::before {
         content: attr(data-value);
@@ -86,23 +99,50 @@ input[type='range'] {
         translate: calc(var(--v) * -1) 0;
         aspect-ratio: 1/1;
         height: var(--slider-height);
-        background-color: #a2a2a2;
         display: flex;
         font-size: calc(var(--slider-height) * .6);
         justify-content: center;
         align-items: center;
         border-radius: 50%;
-        scale: .8;
+        scale: .7;
         transition: .1s;
         pointer-events: none;
+        color: var(--bg1);
+        background-color: var(--clr);
     }
-
+    
     &::before {
         content: '';
     }
-
+    
+    &:hover::after, &:hover::before {
+        scale: .8;
+    }
     &:active::after {
+        background-color: var(--clr-d);
         top: -120%;
         scale: 1.1;
+        box-shadow: -0.1rem .2rem .5rem -0.1rem black;
     }
+    &:active::before {
+        scale: .5;
+    }
+}
+
+
+
+
+
+
+
+smallTitle {
+    font-size: small;
+    text-align: start;
+    padding: var(--element-padding);
+    margin-top: var(--title-margin-small);
+    text-transform: capitalize;
+    color: var(--txt1);
+}
+smallTitle:first-child{
+    margin-top: 0;
 }

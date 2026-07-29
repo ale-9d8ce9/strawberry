@@ -126,7 +126,7 @@ void setup() {
   delay(50);
 
   // check to go in serial mode
-  if (usb.available() && usb.read() == stsDownloadMode) {
+  if (usb.available() && usb.read() == stsDownloadMode || true) {
     fill_solid(leds, CRGB::Green);
     fled.show();
     usb.write(stsDownloadMode);
@@ -167,7 +167,6 @@ void serialModeLoop() {
     waitForSerial();
     handleSerial(usb.read());
     bytecount++;
-    usb.write(bytecount);
     if (msgLength != 0 && bytecount == msgLength) {
       executePayload();
     }
@@ -209,7 +208,6 @@ void handleSerial(uint8_t input) {
       op = input;
       msgLength = op & 0b00000011;
       msgLength++;
-      usb.write(msgLength);
       break;
     case 1:
       arg1 = input;
@@ -349,7 +347,6 @@ void fatalError(uint8_t code) {
 
 
 void readMemory() {
-  if (mode) return;
   uint16_t start = arg1 << 8 + arg2;
   uint16_t end = start + arg3;
 
@@ -369,7 +366,6 @@ void readMemory() {
 }
 
 void writeMemory() {
-  if (mode) return;
   uint16_t start = arg1 << 8 + arg2;
   uint16_t end = start + arg3;
 
