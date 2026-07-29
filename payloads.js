@@ -246,10 +246,10 @@ class Payload {
 payloads = {history:[]}
 
 payloads.showFrame = async function (frameBytes) {
-    if (frameBytes.length != 128) {
+    if (frameBytes.length != 96) {
         return {
             ok: false,
-            message: 'framebytes length invalid (should be 64byets)'
+            message: 'framebytes length invalid (should be 48byets)'
         }
     }
     let p = new Payload({

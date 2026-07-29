@@ -99,6 +99,15 @@ function moveWindow(e, id) {
 
 
 
+function ledIndexFromXY(x, y) {
+  if (y+1 & 0x01) { // if y is odd flip x
+    x = 7 - x;
+  }
+  return y*8 +x;
+}
+
+
+
 
 function inputRangeUpdates(elm) {
     let min = parseInt(elm.min)

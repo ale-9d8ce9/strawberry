@@ -93,8 +93,8 @@ const defs = {
             maxFrames: 79,
             paletteImage: '6bColors.png',
             pickerSize: {x: 8, y: 8},
-            defaultColor: 28,
-            colors: ["#000000", "#010058", "#0001AD", "#0203FE", "#FE02FD", "#FE02AB", "#FD0157", "#FF0102", "#045300", "#015356", "#0053A9", "#0156FF", "#FF58FF", "#FB55A8", "#FD5257", "#FD5401", "#02A802", "#00A655", "#00A9AC", "#03AAFE", "#FFA9FC", "#FEAAAB", "#FEAB57", "#FFAA01", "#01FE00", "#00FE59", "#00FFAB", "#01FDFD", "#FFFFFF", "#FEFFAC", "#FDFE55", "#FFFF02", "#54FD00", "#53FE58", "#53FFAC", "#54FEFE", "#AAFFFF", "#A9FEAB", "#A6FD55", "#ACFF00", "#57A700", "#54AA59", "#53ADAA", "#55A8FE", "#A9ABFF", "#A8ACAD", "#A7AA56", "#ABAA02", "#575300", "#555156", "#5355AC", "#5654FF", "#AB57FD", "#A957AC", "#A75356", "#AB5602", "#540000", "#550053", "#5302AB", "#5601FC", "#AC04FD", "#AA02AD", "#A70055", "#AB0001"]
+            defaultColor: 0,
+            colors: ["#000000", "#000055", "#0000AA", "#0000FF", "#005500", "#005555", "#0055AA", "#0055FF", "#00AA00", "#00AA55", "#00AAAA", "#00AAFF", "#00FF00", "#00FF55", "#00FFAA", "#00FFFF", "#550000", "#550055", "#5500AA", "#5500FF", "#555500", "#555555", "#5555AA", "#5555FF", "#55AA00", "#55AA55", "#55AAAA", "#55AAFF", "#55FF00", "#55FF55", "#55FFAA", "#55FFFF", "#AA0000", "#AA0055", "#AA00AA", "#AA00FF", "#AA5500", "#AA5555", "#AA55AA", "#AA55FF", "#AAAA00", "#AAAA55", "#AAAAAA", "#AAAAFF", "#AAFF00", "#AAFF55", "#AAFFAA", "#AAFFFF", "#FF0000", "#FF0055", "#FF00AA", "#FF00FF", "#FF5500", "#FF5555", "#FF55AA", "#FF55FF", "#FFAA00", "#FFAA55", "#FFAAAA", "#FFAAFF", "#FFFF00", "#FFFF55", "#FFFFAA", "#FFFFFF" ]
         }]
     ]),
 

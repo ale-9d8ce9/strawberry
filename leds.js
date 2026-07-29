@@ -225,7 +225,7 @@ class Frame {
     }
 
     exportLedData() {
-        let data
+        let data = ''
         switch (this.dataType) {
             case '8b':
                 data = this.export8b()
@@ -244,14 +244,33 @@ class Frame {
 
     export6b() {
         let data = ''
+        let pixels = []
         for (let row = 0; row < this.leds.length; row++) {
-            for (let col = 0; col < this.leds[row].length; col+=2) {
-                let byteGroup = this.leds[row][col]
-                byteGroup = byteGroup << 6
-                byteGroup += this.leds[row][col+1]
-
-                data += intToHex(byteGroup)
+            for (let col = 0; col < this.leds[row].length; col++) {
+                pixels[ledIndexFromXY(col, row)] = this.leds[row][col] << 2
             }
+        }
+        for (let i = 0; i < pixels.length; i+=4) {
+            let b0 = 0;
+            let b1 = 0;
+            let b2 = 0;
+            let a = pixels[i]
+            let b = pixels[i+1]
+            let c = pixels[i+2]
+            let d = pixels[i+3]
+
+            b0 = a
+            b0 |= (b & 0b00001100) >> 2
+
+            b1 = b & 0b11110000
+            b1 |= (c & 0b00111100) >> 2
+
+            b2 = d >> 2
+            b2 |= c & 0b11000000
+
+            data += intToHex(b0)
+            data += intToHex(b1)
+            data += intToHex(b2)
         }
         return data
     }
@@ -365,7 +384,7 @@ leds.init = function () {
     document.getElementById('leds').innerHTML = html
 
     project = new Project({
-        dataType: '8b'
+        dataType: '6b'
     })
     project.addFrame()
 }
