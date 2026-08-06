@@ -77,9 +77,59 @@
             <div onclick="project.addFrame()"><img src="icons/new-empty.svg"></div>
         </div>
 
-        <settings>
-
-        </settings>
+        <settingsContainer>
+            <settings>
+                <button onclick="settings.toggle()">exit</button>
+                <setting>
+                    <description>
+                        project start
+                    </description>
+                    <input id="setting-projectStart" type="number" min="2" max="5120" value="2">
+                </setting>
+                    <description>
+                        delay in between frames
+                    </description>
+                    <input id="setting-framesDelay" type="range" min="0" max="100" value="16">
+                </setting>
+                    <description>
+                        max brightness (could be lower depending on the power source)
+                    </description>
+                    <input id="setting-maxBrightness" type="range" min="0" max="250" value="10">
+                </setting>
+                <smallTitle>mode byte</smallTitle>
+                <setting>
+                    <description>
+                        play animation instead of water when booting
+                    </description>
+                    <input id="setting-defaultModeBooting" type="checkbox" >
+                </setting>
+                <setting>
+                    <description>
+                        auto brightness
+                    </description>
+                    <input id="setting-autoBrightness" type="checkbox" >
+                </setting>
+                <setting>
+                    <description>
+                        animation rotation
+                    </description>
+                    <input id="setting-animationRotation" type="range" min="-1" value="0" max="2">
+                </setting>
+                <setting>
+                    <description>
+                        use the button to switch between water and animation
+                    </description>
+                    <input id="setting-buttonSwitchMode" type="checkbox" >
+                </setting>
+                <smallTitle>website settings</smallTitle>
+                <setting>
+                    <description>
+                        background color
+                    </description>
+                    <input id="setting-buttonSwitchMode" type="checkbox" >
+                </setting>
+            </settings>
+        </settingsContainer>
     </page>
     <hexMonitor class="window" style="top:100px;left:200px">
         <div class="window-handle">

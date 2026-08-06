@@ -276,13 +276,14 @@ class Frame {
     }
     export8b() {
         let data = ''
+        let pixels = []
         for (let row = 0; row < this.leds.length; row++) {
             for (let col = 0; col < this.leds[row].length; col++) {
                 const pixel = this.leds[row][col];
-                let hex = intToHex(pixel)
-                data += hex
+                pixels[ledIndexFromXY(col, row)] = intToHex(pixel)
             }
         }
+        data = pixels.join('')
         return data
     }
 
@@ -374,8 +375,7 @@ leds.init = function () {
                 ${(Math.random()*4+1)*5}s,
                 ${(Math.random()*4+1)*12}s;
 
-            transition-delay:
-                ${d*p}s;
+            --delay: ${d*p}s;
 
             "></led>`
     }
@@ -384,7 +384,7 @@ leds.init = function () {
     document.getElementById('leds').innerHTML = html
 
     project = new Project({
-        dataType: '6b'
+        dataType: '8b'
     })
     project.addFrame()
 }

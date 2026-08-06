@@ -1,26 +1,5 @@
 
 
-uint8_t waterColor = 0;
-
-
-uint16_t framesDataStart = 0;
-uint8_t nFrames = 0;
-uint8_t fps = 0;
-uint8_t maxBrightness = 0;
-bool autoBrightness = true;
-uint8_t defaultModeWhenBooting = 0;
-uint8_t colorCompressionAlgorithm = 0;
-uint8_t animationRotation = 0;
-bool buttonSwitchMode = true;
-struct color {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
-};
-
-
-
-
 
 void initAnimation() {
   uint16_t projectStart;
@@ -39,6 +18,13 @@ void initAnimation() {
   autoBrightness = others & 1;                others = others >> 1;
   defaultModeWhenBooting =  others & 1;    // others = others >> 1;
 }
+
+
+
+
+// 6b
+
+
 
 void setLedColor6b(uint8_t led, uint8_t bits) {
   uint8_t r = bits & 0b11000000;
@@ -71,5 +57,16 @@ void showFrame6b(uint8_t data[]) {
     setLedColor6b(led, bits);       led++;
   }
   fled.show();
+}
+
+
+
+// 8b
+
+
+void setLedColor8b(uint8_t led, uint8_t colorIndex) {
+  uint8_t rgb[3];
+  memcpy_P(rgb, colors8b[colorIndex], 3);
+  leds[led] = CRGB(rgb[0], rgb[1], rgb[2]);
 }
 

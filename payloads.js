@@ -246,14 +246,30 @@ class Payload {
 payloads = {history:[]}
 
 payloads.showFrame = async function (frameBytes) {
-    if (frameBytes.length != 96) {
-        return {
-            ok: false,
-            message: 'framebytes length invalid (should be 48byets)'
-        }
+    switch (project.dataType) {
+        case '6b':
+            if (frameBytes.length != 96) {
+                return {
+                    ok: false,
+                    message: 'framebytes length invalid (should be 48bytes)'
+                }
+            }
+            break;
+        case '8b':
+            if (frameBytes.length != 128) {
+                return {
+                    ok: false,
+                    message: 'framebytes length invalid (should be 64bytes)'
+                }
+            }
+            break;
+    
+        default:
+            break;
     }
+    
     let p = new Payload({
-        operation: 'showFrame',
+        operation: 'showFrame'+ project.dataType,
         otherData: frameBytes
     })
     let response = await p.execute()
@@ -294,6 +310,15 @@ payloads.setMode = async function (mode) {
     let p = new Payload({
         operation: 'setMode',
         args: s
+    })
+    let response = await p.execute()
+    return response
+}
+payloads.setBrightness = async function (brightness) {
+    let b = hexToInt(brightness) < 5 ? brightness : 5
+    let p = new Payload({
+        operation: 'setBrightness',
+        args: b
     })
     let response = await p.execute()
     return response

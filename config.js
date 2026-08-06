@@ -10,7 +10,7 @@ const config = {
         normal: 0.3,
         slow: 3,
         ledsRotation: 1,
-        settings: 1,
+        settings: 0.8,
     },
 
     serialMinWaitForResponse: 25,
@@ -55,14 +55,27 @@ const defs = {
             argsLength: 1,
             returnsData: false
         },
+        setMaxBrightness: {
+            code: '2D',
+            needsArgs: true,
+            needsOtherData: false,
+            argsLength: 1,
+            returnsData: false
+        },
         hardReset: {
             code: '20',
             needsArgs: false,
             needsOtherData: false,
             returnsData: false
         },
-        showFrame: {
+        showFrame6b: {
             code: '04',
+            needsArgs: false,
+            needsOtherData: true,
+            returnsData: false
+        },
+        showFrame8b: {
+            code: '08',
             needsArgs: false,
             needsOtherData: true,
             returnsData: false

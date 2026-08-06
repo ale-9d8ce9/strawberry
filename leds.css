@@ -16,10 +16,12 @@
     background-color: var(--page-bg);
 
     &.transitionColors led {
-        transition: all var(--transition-settings);
+        transition:
+            all calc(var(--transition-settings)) var(--delay),
+            background-color calc(var(--transition-settings)) var(--delay);
     }
     &:not(.transitionColors) led {
-        transition-delay: 0s !important;
+        transition-delay: var(--delay), 0s !important;
     }
 }
 @property --leds-rotation {
@@ -56,12 +58,14 @@
 led {
     --translate-x: 0%;
     --translate-y: 0%;
-    transition: all var(--transition-normal), background-color 0s;
+    --delay: 0s;
+    transition: all var(--transition-normal) var(--delay), background-color 0s 0s;
     rotate: calc(var(--leds-rotation) * -1);
     scale: .7;
     border-radius: 16%;
     translate: var(--translate-x) var(--translate-y);
     border: .1rem solid #ffffff40;
+    outline: 1px solid transparent;
 }
 #leds[funAnimation] > led {
     transition: all var(--transition-ledsRotation);

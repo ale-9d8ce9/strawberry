@@ -32,3 +32,27 @@ function generateFunctionID(opNumber, args) {
 }
 
 
+
+// export colors to progmem
+function colorArrayToProgmem(array) {
+    let output = '{\n'
+    for (let index = 0; index < array.length; index++) {
+        const color = array[index].replace('#', '');
+        let bytes = divideHexStringInBytes(color)
+        let r = hexToInt(bytes[0])
+        let g = hexToInt(bytes[1])
+        let b = hexToInt(bytes[2])
+
+        output += `  {${r}, ${g}, ${b}},\n`
+    }
+    output += '};'
+    return output
+}
+
+
+
+
+
+
+
+

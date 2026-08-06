@@ -26,7 +26,9 @@
     --leds-margin: 2rem;
     --leds-max-w: calc(100vw - var(--controls-width) - var(--frames-width) - 2*var(--leds-margin));
 
-    --settings-border-radius: 1rem;
+    --settings-border-radius: 2.5rem;
+    --settings-width: 40vw;
+    --settings-height: 40vw;
 
     --slider-height: 1.5rem;
 

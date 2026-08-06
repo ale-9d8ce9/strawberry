@@ -14,7 +14,6 @@
 #define RED_LED_PIN 10
 #define LED_PIN 9
 #define NUM_LEDS 64
-#define BRIGHTNESS 12
 #define PROJECT_HEADER_SIZE 4
 
 #define NWaterParticles 20
@@ -33,8 +32,10 @@
 #define opReadMemory    0x83
 #define opWriteMemory   0x87
 #define opSetMode       0x29
+#define opSetBrightness 0x2D
 #define opHardReset     0x20
-#define opShowFrame     0x04
+#define opShowFrame6b   0x04
+#define opShowFrame8b   0x08
 
 #define errUnknown                        0x00
 #define errRangeOutsideOfMemoryCapacity   0x01
@@ -75,6 +76,21 @@ Adafruit_LIS3DH lis = Adafruit_LIS3DH();
 uint8_t myrandom = 0;
 
 
+uint8_t waterColor = 0;
+
+
+uint16_t framesDataStart = 0;
+uint8_t nFrames = 0;
+uint8_t fps = 0;
+uint8_t maxBrightness = 0;
+bool autoBrightness = true;
+uint8_t defaultModeWhenBooting = 0;
+uint8_t colorCompressionAlgorithm = 0;
+uint8_t animationRotation = 0;
+bool buttonSwitchMode = true;
+
+
+
 
 void setup() {
   MCUSR = 0;wdt_disable();
@@ -86,13 +102,15 @@ void setup() {
   pinMode(GREEN_LED_PIN, OUTPUT);
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-  analogWrite(GREEN_LED_PIN, BRIGHTNESS/2);
+  analogWrite(GREEN_LED_PIN, 10);
 
   // initialize leds
   fled.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-  fled.setBrightness(BRIGHTNESS);
-  fill_solid(leds, NUM_LEDS, CRGB::Purple);
+  setMaxBrightness();
+  fled.setBrightness(10);
   fled.show();
+  // precharge NEVER CHANGE THIS CODE
+  digitalWrite(3, HIGH);
   pinMode(3, OUTPUT);
   delay(50);
   digitalWrite(3, LOW);
@@ -170,14 +188,20 @@ void executePayload() {
     case opSetMode:
       setMode();
       break;
+    case opSetBrightness:
+      setBrightness();
+      break;
     case opReadMemory:
       readMemorySerial();
       break;
     case opWriteMemory:
       writeMemorySerial();
       break;
-    case opShowFrame:
-      showFrame();
+    case opShowFrame6b:
+      showFrame6bSerial();
+      break;
+    case opShowFrame8b:
+      showFrame8bSerial();
       break;
     default:
       error(errUnknownOperation);
@@ -210,7 +234,7 @@ void handleSerial(uint8_t input) {
 
 
 
-void showFrame() {
+void showFrame6bSerial() {
   usb.write(stsExecuting);
   usb.write(op);
   usb.write(48);
@@ -221,6 +245,21 @@ void showFrame() {
     pixels[i] = usb.read();
   }
   showFrame6b(pixels);
+  closeUsbMsgAllOk();
+}
+
+
+void showFrame8bSerial() {
+  usb.write(stsExecuting);
+  usb.write(op);
+  usb.write(64);
+  usb.write(0);
+  for (uint8_t i = 0; i < 64; i++) {
+    waitForSerial();
+    uint8_t color = usb.read();
+    setLedColor8b(i, color);
+  }
+  fled.show();
   closeUsbMsgAllOk();
 }
 
@@ -236,6 +275,21 @@ void setMode() {
   }
   usb.write(stsExecuting);
   usb.write(op);
+  mode = newMode;
+  closeUsbMsgAllOk();
+}
+
+
+void setBrightness() {
+  usb.write(stsExecuting);
+  usb.write(op);
+  if (arg1 < 4) {
+    error(errInvalidArgs);
+    return;
+  }
+  maxBrightness = arg1;
+  fled.setBrightness(maxBrightness);
+  fled.show();
   closeUsbMsgAllOk();
 }
 
@@ -249,10 +303,22 @@ void setMode() {
 
 
 
+void setMaxBrightness() {
+  uint16_t a0 = analogRead(0);
+  uint16_t a1 = analogRead(1);
+  uint16_t power = a0 > a1 ? a0 : a1;
+  if (power > 160) {
+    fled.setMaxPowerInVoltsAndMilliamps(5, 400);
+  } else {
+    fled.setMaxPowerInVoltsAndMilliamps(5, 400);
+  }
+}
+
+
 
 // full reboot
 void hardReset() {
-  if (mode) return
+  if (mode) return;
   usb.write(stsExecuting);
   usb.write(op);
   usb.write(stsAllOk);
@@ -265,6 +331,7 @@ void hardReset() {
 void waitForSerial() {
   while (usb.available() == 0) {}
 }
+
 
 
 
