@@ -8,15 +8,31 @@ void initAnimation() {
   framesDataStart = projectStart + PROJECT_HEADER_SIZE;
 
   nFrames = readMemory(projectStart);
-  fps = readMemory(projectStart +1);
-  maxBrightness = readMemory(projectStart +2);
-  uint8_t others = readMemory(projectStart +3);
+  frameDelay = readMemory(projectStart +1);
+
+  uint8_t waterColor = readMemory(projectStart +2);
+  uint8_t rgb[3];
+  memcpy_P(rgb, colors8b[waterColor], 3);
+  waterColorR = rgb[0]; waterColorG = rgb[1]; waterColorB = rgb[2];
+
+  maxBrightness = readMemory(projectStart +3);
+  uint8_t others = readMemory(projectStart +4);
 
   buttonSwitchMode = others & 1;              others = others >> 1;
   animationRotation = others & 0b11;          others = others >> 2;
   colorCompressionAlgorithm = others & 0b111; others = others >> 3;
   autoBrightness = others & 1;                others = others >> 1;
   defaultModeWhenBooting =  others & 1;    // others = others >> 1;
+}
+
+
+
+void animationNextFrame() {
+  playFrame6b(currentFrame);
+  currentFrame ++;
+  if (currentFrame == nFrames) {
+    currentFrame = 0;
+  }
 }
 
 
@@ -61,6 +77,16 @@ void showFrame6b(uint8_t data[]) {
 
 
 
+void playFrame6b(uint8_t nframe) {
+  uint16_t frameAddress = framesDataStart + (48 * nframe);
+  uint8_t pixelData[48];
+  for (uint8_t i = 0; i < 48; i++) {
+    pixelData[i] = readMemory(frameAddress + i);
+  }
+  showFrame6b(pixelData);
+}
+
+
 // 8b
 
 
@@ -69,4 +95,11 @@ void setLedColor8b(uint8_t led, uint8_t colorIndex) {
   memcpy_P(rgb, colors8b[colorIndex], 3);
   leds[led] = CRGB(rgb[0], rgb[1], rgb[2]);
 }
+
+
+
+
+
+
+
 

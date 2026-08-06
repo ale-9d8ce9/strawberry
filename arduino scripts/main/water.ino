@@ -276,7 +276,7 @@ void simulate() {
   for (uint8_t i = 0; i < NWaterParticles; i++) {
     movecell(i);
     uint8_t led = ledIndexFromXY(waterParticles[i].x, waterParticles[i].y);
-    leds[led] = CRGB(0, 128, 255);
+    leds[led] = CRGB(waterColorR, waterColorG, waterColorB);
   }
   FastLED.show();
 }

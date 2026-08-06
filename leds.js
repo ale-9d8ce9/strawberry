@@ -9,6 +9,9 @@ class Project {
         this.selectedFrame = -1
         this.colorConfig = defs.colorConfigs.get(this.dataType)
         this.colors = this.colorConfig.colors
+        this.settings = {
+            frameDelay: 50
+        }
 
         this.rotation = 0
         document.documentElement.style.setProperty('--leds-rotation',`0deg`)
@@ -144,6 +147,34 @@ class Project {
                 await delay(d)
             }
         }
+    }
+
+    async flash(projectStart = 2) {
+        await this.flashProjectHeader()
+        for (let i = 0; i < this.frames.length; i++) {
+            const frame = this.frames[i];
+            await frame.flash(7 + (48 * i))
+        }
+    }
+
+    async flashProjectHeader() {
+        let projectStart = 2
+
+        let nFrames = intToHex(this.frames.length)
+        let frameDelay = intToHex(this.settings.frameDelay)
+        let waterColor = '5A'
+        let brightness = '10'
+        let others = 'FF'
+
+        let headerString = [
+            nFrames,
+            frameDelay,
+            waterColor,
+            brightness,
+            others
+        ].join('')
+
+        await payloads.writeMemory(projectStart, 5, headerString)
     }
 }
 
@@ -303,6 +334,10 @@ class Frame {
         }
         return ledDataWritten.response.join('') === ledData
     }
+
+    async flash(frameAddress) {
+        return await payloads.writeMemory(frameAddress, 48, this.exportLedData())
+    }
 }
 
 
@@ -384,7 +419,7 @@ leds.init = function () {
     document.getElementById('leds').innerHTML = html
 
     project = new Project({
-        dataType: '8b'
+        dataType: '6b'
     })
     project.addFrame()
 }

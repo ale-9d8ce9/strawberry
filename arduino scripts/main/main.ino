@@ -14,7 +14,7 @@
 #define RED_LED_PIN 10
 #define LED_PIN 9
 #define NUM_LEDS 64
-#define PROJECT_HEADER_SIZE 4
+#define PROJECT_HEADER_SIZE 5
 
 #define NWaterParticles 20
 
@@ -76,18 +76,21 @@ Adafruit_LIS3DH lis = Adafruit_LIS3DH();
 uint8_t myrandom = 0;
 
 
-uint8_t waterColor = 0;
+uint8_t waterColorR;
+uint8_t waterColorG;
+uint8_t waterColorB;
 
 
 uint16_t framesDataStart = 0;
 uint8_t nFrames = 0;
-uint8_t fps = 0;
+uint8_t frameDelay = 0;
 uint8_t maxBrightness = 0;
 bool autoBrightness = true;
 uint8_t defaultModeWhenBooting = 0;
 uint8_t colorCompressionAlgorithm = 0;
 uint8_t animationRotation = 0;
 bool buttonSwitchMode = true;
+uint8_t currentFrame = 0;
 
 
 
@@ -151,7 +154,8 @@ void loop() {
     tickWaterSimulation();
     delay(50);
   } else {
-    // animation
+    animationNextFrame();
+    delay(frameDelay);
   }
 }
 
