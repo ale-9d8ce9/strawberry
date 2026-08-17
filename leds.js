@@ -148,7 +148,10 @@ class Project {
         for (let i = 0; i < n; i++) {
             for (let i = 0; i < this.frames.length; i++) {
                 const frame = this.frames[i];
-                console.log(await frame.preview())
+                let previewResult = await frame.preview()
+                if (!previewResult.continue) {
+                    return
+                }
                 await delay(d)
             }
         }
@@ -156,21 +159,31 @@ class Project {
 
     async flash() {
         serial.flashingStatus = structuredClone(defs.flashingStatusStart)
+
         serial.flashingStatus.status = 'writing header'
-        
-        let headerFlashResult = await this.flashProjectHeader()
-        console.log('header flashed', headerFlashResult)
+        let headerString = this.generateHeader()
+        let headerFlashResult = await payloads.writeMemory(this.settings.projectStart, defs.projectHeaderSize, headerString)
+        if (!headerFlashResult.continue) {
+            return
+        }
+
+
+        serial.flashingStatus.status = 'writing frames'
         let dataStart = this.settings.projectStart + defs.projectHeaderSize
 
+        let frameFlashResult
         for (let i = 0; i < this.frames.length; i++) {
             const frame = this.frames[i];
-            await frame.flash(dataStart + (this.colorConfig.frameDataLength * i))
+            frameFlashResult = await frame.flash(dataStart + (this.colorConfig.frameDataLength * i))
+            if (!frameFlashResult.continue) {
+                return
+            }
         }
-    }
 
-    async flashProjectHeader() {
-        headerString = this.generateHeader()
-        return await payloads.writeMemory(this.settings.projectStart, defs.projectHeaderSize, headerString)
+
+        serial.flashingStatus.status = 'verifying header'
+        headerFlashResult = await payloads.readMemory(this.settings.projectStart, defs.projectHeaderSize)
+        console.log(headerFlashResult)
     }
 
     generateHeader() {
@@ -350,19 +363,6 @@ class Frame {
 
     async preview() {
         return await payloads.showFrame(this.exportLedData())
-    }
-    async checkWrittenData(projectStart, n) {
-        if (projectStart === undefined || n === undefined) {
-            throw new Error("arguments projectStart and n needed for Frame");
-            return
-        }
-        let ledData = this.exportLedData()
-        let start = projectStart + (n * ledData.length /2)
-        let ledDataWritten = await payloads.readMemory(start, ledData.length /2)
-        if (!ledDataWritten.ok) {
-            return ledDataWritten
-        }
-        return ledDataWritten.response.join('') === ledData
     }
 
     async flash(frameAddress) {

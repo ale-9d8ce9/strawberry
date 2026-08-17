@@ -38,7 +38,7 @@
             <button onclick="settings.toggle()">settins</button>
             <buttonGroup>
                 <button onclick="serial.connect()" id="connectBtn">connect</button>
-                <button id="flash">flash</button>
+                <button id="flash" onclick="project.flash()">flash</button>
             </buttonGroup>
             <buttonGroup>
                 <div class="iconContainer" data-name="save" onclick="project.export()"><img class="icon" src="icons/save.svg"></div>
@@ -89,37 +89,37 @@
                     <description>
                         delay in between frames
                     </description>
-                    <input id="setting-framesDelay" type="range" min="0" max="100" value="16">
+                    <input id="setting-framesDelay" type="range" min="0" max="100" value="16" onchange="project.settings.frameDelay = parseInt(this.value)">
                 </setting>
                     <description>
                         max brightness (could be lower depending on the power source)
                     </description>
-                    <input id="setting-maxBrightness" type="range" min="0" max="250" value="10">
+                    <input id="setting-maxBrightness" type="range" min="0" max="250" value="10" onchange="project.settings.brightness = parseInt(this.value)">
                 </setting>
                 <smallTitle>mode byte</smallTitle>
                 <setting>
                     <description>
                         play animation instead of water when booting
                     </description>
-                    <input id="setting-defaultModeBooting" type="checkbox" >
+                    <input id="setting-defaultModeBooting" type="checkbox" onchange="project.settings.playAnimationOnBoot = this.checked">
                 </setting>
                 <setting>
                     <description>
                         auto brightness
                     </description>
-                    <input id="setting-autoBrightness" type="checkbox" >
+                    <input id="setting-autoBrightness" type="checkbox" onchange="project.settings.autoBrightness = this.checked">
                 </setting>
                 <setting>
                     <description>
                         animation rotation
                     </description>
-                    <input id="setting-animationRotation" type="range" min="-1" value="0" max="2">
+                    <input id="setting-animationRotation" type="range" min="-1" value="0" max="2" onchange="project.settings.animationRotation = parseInt(this.value)">
                 </setting>
                 <setting>
                     <description>
                         use the button to switch between water and animation
                     </description>
-                    <input id="setting-buttonSwitchMode" type="checkbox" >
+                    <input id="setting-buttonSwitchMode" type="checkbox" onchange="project.settings.buttonSwitchMode = this.checked">
                 </setting>
                 <smallTitle>website settings</smallTitle>
                 <setting>

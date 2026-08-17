@@ -108,11 +108,11 @@ class Payload {
 
     async checkResponse(response) {
         if (response.length < 2) {
-            return {
+            return new playloadResult({
                 ok: false,
                 withError: false,
                 message: 'response invalid'
-            }
+            })
         }
 
         let l = response.length
@@ -120,17 +120,17 @@ class Payload {
         let responseCode = response[l-1]
 
         if (responseStatus == defs.status.allOk && (responseCode == defs.status.ready || responseCode == defs.status.wait)) {
-            return {
+            return new playloadResult({
                 ok: true,
                 response: response.slice(0,l-2)
-            }
+            })
         }
 
         if (responseStatus == defs.status.error || responseStatus == defs.status.fatalError) {
             if (responseStatus == defs.status.fatalError) {
                 await serial.reconnect()
             }
-            return {
+            return new playloadResult({
                 ok: false,
                 response: response,
                 withError: true,
@@ -141,13 +141,13 @@ class Payload {
                     message: defs.errors.get(responseCode)
                 },
                 message: 'handled error'
-            }
+            })
         }
 
-        return {
+        return new playloadResult({
             ok: true,
             response: response.slice(4,l-2)
-        }
+        })
     }
 
 
@@ -160,7 +160,7 @@ class Payload {
             if (!result.ok) {
                 alert('error: '+JSON.stringify(result.message))
             }
-            return result
+            return new playloadResult(result)
         }
 
         console.log('executing', this)
@@ -243,14 +243,47 @@ class Payload {
 }
 
 
+class playloadResult {
+    constructor(args) {
+        let keys = Object.keys(args)
+        if (
+            !keys.includes('ok') ||
+            (!args.ok && !keys.includes('message') && !keys.includes('withError')) ||
+            (args.ok && !keys.includes('response')) ||
+            (!args.ok && args.withError && !keys.includes('error'))
+        ) {
+            console.log(args)
+            throw new Error("invalid args for payload return")
+            return
+        }
+        this.ok = args.ok
+        
+        if (this.ok) {
+            this.response = args.response
+            this.continue = true
+
+        } else {
+            this.message = args.message
+            this.reset = args.reset || false
+            this.withError = args.withError 
+            if (this.withError) {
+                this.error = args.error
+            }
+            this.continue = confirm('error while executing: '+this.message)
+        }
+    }
+}
+
+
+
 payloads = {history:[]}
 
 payloads.showFrame = async function (frameBytes) {
     if (project.colorConfig.frameDataLength != frameBytes.length/2) {
-        return {
+        return new playloadResult({
             ok: false,
             message: `invalid frameBytes length (expected: ${project.colorConfig.frameDataLength}, got: ${frameBytes.length/2})`
-        }
+        })
     }    
     let p = new Payload({
         operation: 'showFrame'+ project.dataType,
@@ -273,10 +306,10 @@ payloads.readMemory = async function (start, offset) {
 
 payloads.writeMemory = async function (start, offset, otherData) {
     if (divideHexStringInBytes(otherData).length != offset) {
-        return {
+        return new playloadResult({
             ok: false,
             message: 'mismatch between offset and otherData length'
-        }
+        })
     }
     let args = intToHex(start).padStart(4,'0')
     args += intToHex(offset)
@@ -315,6 +348,8 @@ payloads.hardReset = async function () {
     let response = await p.execute()
     return response
 }
+
+
 
 
 payloads.initMonitor = function () {
