@@ -12,7 +12,7 @@ let serial = {
         baudRate: config.serialSpeed,
         dataBits: 8,
         stopBits: 1,
-        parity: 'odd',
+        parity: 'none',
         bufferSize: 510
     },
     filters: [

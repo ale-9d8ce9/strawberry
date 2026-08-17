@@ -22,18 +22,25 @@ void initAnimation() {
   animationRotation = others & 0b11;          others = others >> 2;
   colorCompressionAlgorithm = others & 0b111; others = others >> 3;
   autoBrightness = others & 1;                others = others >> 1;
-  defaultModeWhenBooting =  others & 1;    // others = others >> 1;
+  playAnimationOnBoot =  others & 1;    //      others = others >> 1;
 }
 
 
 
+
+
+typedef void (*funcArray)(int);
+funcArray playFrame[] = {playFrame6b, playFrame8b};
+
+
 void animationNextFrame() {
-  playFrame6b(currentFrame);
+  playFrame[colorCompressionAlgorithm](currentFrame);
   currentFrame ++;
   if (currentFrame == nFrames) {
     currentFrame = 0;
   }
 }
+
 
 
 
@@ -87,6 +94,8 @@ void playFrame6b(uint8_t nframe) {
 }
 
 
+
+
 // 8b
 
 
@@ -99,7 +108,14 @@ void setLedColor8b(uint8_t led, uint8_t colorIndex) {
 
 
 
-
+void playFrame8b(uint8_t nframe) {
+  uint16_t frameAddress = framesDataStart + (64 * nframe);
+  for (uint8_t i = 0; i < 64; i++) {
+    uint8_t color = readMemory(frameAddress + i);
+    setLedColor8b(i, color);
+  }
+  fled.show();
+}
 
 
 

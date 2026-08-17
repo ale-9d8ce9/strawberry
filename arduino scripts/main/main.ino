@@ -8,7 +8,7 @@
 
 
 #define SERIAL_SPEED 115200
-#define SERIAL_CONF SERIAL_8O1
+#define SERIAL_CONF SERIAL_8N1
 #define BUTTON_PIN 7
 #define GREEN_LED_PIN 2
 #define RED_LED_PIN 10
@@ -16,7 +16,7 @@
 #define NUM_LEDS 64
 #define PROJECT_HEADER_SIZE 5
 
-#define NWaterParticles 20
+#define NWaterParticles 0x04
 
 
 #define stsBootComplete   0xBD
@@ -86,11 +86,14 @@ uint8_t nFrames = 0;
 uint8_t frameDelay = 0;
 uint8_t maxBrightness = 0;
 bool autoBrightness = true;
-uint8_t defaultModeWhenBooting = 0;
+uint8_t playAnimationOnBoot = 0;
 uint8_t colorCompressionAlgorithm = 0;
 uint8_t animationRotation = 0;
 bool buttonSwitchMode = true;
 uint8_t currentFrame = 0;
+
+
+uint8_t previousBtn = digitalRead(BUTTON_PIN);
 
 
 
@@ -128,6 +131,7 @@ void setup() {
   initWater();
   initAnimation();
   delay(50);
+  mode = playAnimationOnBoot;
 
   // check to go in serial mode
   if (usb.available() && usb.read() == stsDownloadMode) {
@@ -150,6 +154,12 @@ void setup() {
 
 
 void loop() {
+  uint8_t currentBtn = digitalRead(BUTTON_PIN);
+  if (currentBtn != 1 && currentBtn != previousBtn) {
+    delay(50);
+    mode ^= 1;
+    previousBtn = currentBtn;
+  }
   if (mode == waterSimulation) {
     tickWaterSimulation();
     delay(50);
@@ -157,6 +167,7 @@ void loop() {
     animationNextFrame();
     delay(frameDelay);
   }
+  autoBrightnessControl();
 }
 
 
@@ -380,5 +391,12 @@ void fatalError(uint8_t code) {
 
 
 
+
+
+void autoBrightnessControl() {
+  uint8_t outsideLight = (1024 - analogRead(A7)) >> 2;
+  //usb.println(outsideLight);
+  fled.setBrightness(outsideLight);
+}
 
 

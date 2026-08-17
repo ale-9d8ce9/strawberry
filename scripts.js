@@ -164,6 +164,8 @@ async function start() {
     payloads.initMonitor()
     leds.init()
 
+    serial.flashingStatus = structuredClone(defs.flashingStatusStart)
+
     document.documentElement.style.setProperty('--transition-fast',config.transitionSpeed.fast+'s')
     document.documentElement.style.setProperty('--transition-normal',config.transitionSpeed.normal+'s')
     document.documentElement.style.setProperty('--transition-slow',config.transitionSpeed.slow+'s')

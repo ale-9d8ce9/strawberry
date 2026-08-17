@@ -246,28 +246,12 @@ class Payload {
 payloads = {history:[]}
 
 payloads.showFrame = async function (frameBytes) {
-    switch (project.dataType) {
-        case '6b':
-            if (frameBytes.length != 96) {
-                return {
-                    ok: false,
-                    message: 'framebytes length invalid (should be 48bytes)'
-                }
-            }
-            break;
-        case '8b':
-            if (frameBytes.length != 128) {
-                return {
-                    ok: false,
-                    message: 'framebytes length invalid (should be 64bytes)'
-                }
-            }
-            break;
-    
-        default:
-            break;
-    }
-    
+    if (project.colorConfig.frameDataLength != frameBytes.length/2) {
+        return {
+            ok: false,
+            message: `invalid frameBytes length (expected: ${project.colorConfig.frameDataLength}, got: ${frameBytes.length/2})`
+        }
+    }    
     let p = new Payload({
         operation: 'showFrame'+ project.dataType,
         otherData: frameBytes

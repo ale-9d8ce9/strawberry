@@ -9,12 +9,17 @@ class Project {
         this.selectedFrame = -1
         this.colorConfig = defs.colorConfigs.get(this.dataType)
         this.colors = this.colorConfig.colors
-        this.settings = {
-            frameDelay: 50
-        }
 
-        this.rotation = 0
-        document.documentElement.style.setProperty('--leds-rotation',`0deg`)
+        this.settings = {
+            frameDelay: 50,
+            brightness: 12,
+            waterColor: 40,
+            projectStart: 2,
+            animationRotation: 0,
+            buttonSwitchMode: true,
+            autoBrightness: false,
+            playAnimationOnBoot: true
+        }
 
         this.updateColorPicker()
 
@@ -149,22 +154,47 @@ class Project {
         }
     }
 
-    async flash(projectStart = 2) {
-        await this.flashProjectHeader()
+    async flash() {
+        serial.flashingStatus = structuredClone(defs.flashingStatusStart)
+        serial.flashingStatus.status = 'writing header'
+        
+        let headerFlashResult = await this.flashProjectHeader()
+        console.log('header flashed', headerFlashResult)
+        let dataStart = this.settings.projectStart + defs.projectHeaderSize
+
         for (let i = 0; i < this.frames.length; i++) {
             const frame = this.frames[i];
-            await frame.flash(7 + (48 * i))
+            await frame.flash(dataStart + (this.colorConfig.frameDataLength * i))
         }
     }
 
     async flashProjectHeader() {
-        let projectStart = 2
+        headerString = this.generateHeader()
+        return await payloads.writeMemory(this.settings.projectStart, defs.projectHeaderSize, headerString)
+    }
+
+    generateHeader() {
+        function generateOthers(proj) {
+            let buttonSwitchMode = proj.settings.buttonSwitchMode   & 0b1
+            let animationRotation = proj.settings.animationRotation & 0b11
+            let colorCompressionAlgorithm = (proj.dataType == '8b') & 0b111
+            let autoBrightness = proj.settings.autoBrightness       & 0b1
+            let playAnimationOnBoot = proj.settings.playAnimationOnBoot & 0b1
+
+            let others = 0
+            others += buttonSwitchMode;             others = others << 1
+            others += animationRotation;            others = others << 2
+            others += colorCompressionAlgorithm;    others = others << 3
+            others += autoBrightness;               others = others << 1
+            others += playAnimationOnBoot;          //others = others << 1
+            return others
+        }
 
         let nFrames = intToHex(this.frames.length)
         let frameDelay = intToHex(this.settings.frameDelay)
-        let waterColor = '5A'
-        let brightness = '10'
-        let others = 'FF'
+        let waterColor = intToHex(this.settings.waterColor)
+        let brightness = intToHex(this.settings.brightness)
+        let others = intToHex(generateOthers(this))
 
         let headerString = [
             nFrames,
@@ -174,7 +204,7 @@ class Project {
             others
         ].join('')
 
-        await payloads.writeMemory(projectStart, 5, headerString)
+        return headerString
     }
 }
 
@@ -336,7 +366,8 @@ class Frame {
     }
 
     async flash(frameAddress) {
-        return await payloads.writeMemory(frameAddress, 48, this.exportLedData())
+        let data = this.exportLedData()
+        return await payloads.writeMemory(frameAddress, project.colorConfig.frameDataLength, data)
     }
 }
 
@@ -419,7 +450,7 @@ leds.init = function () {
     document.getElementById('leds').innerHTML = html
 
     project = new Project({
-        dataType: '6b'
+        dataType: '8b'
     })
     project.addFrame()
 }
