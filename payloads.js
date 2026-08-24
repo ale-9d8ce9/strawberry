@@ -4,6 +4,7 @@ class Payload {
         args.args ? this.args = args.args : undefined
         args.otherData ? this.otherData = args.otherData : undefined
         this.history = {send: args}
+        return this.execute()
     }
     
 
@@ -154,9 +155,11 @@ class Payload {
 
     async execute() {
         function exit(result, payload) {
-            serial.deviceBusy = false
+            if (serial.deviceState != deviceStates.none) serial.deviceState = deviceStates.connected
+
             payload.history.result = result
             payloads.history.push(payload.history)
+
             if (!result.ok) {
                 alert('error: '+JSON.stringify(result.message))
             }
@@ -164,13 +167,15 @@ class Payload {
         }
 
         console.log('executing', this)
-        if (!serial.deviceConnected) {
+
+        if (serial.deviceState == deviceStates.none) {
             return exit({
                 ok: false,
                 message: 'no device connected',
                 withError: false
             }, this)
         }
+
         if (!await this.check()) {
             return exit({
                 ok: false,
@@ -179,10 +184,10 @@ class Payload {
             }, this)
         }
 
-        if (serial.deviceBusy) {
+        if (serial.deviceState == deviceStates.busy) {
             console.log('device busy\nwaiting 60 seconds')
             let count = 0
-            while (serial.deviceBusy) {
+            while (serial.deviceState == deviceStates.busy) {
                 await delay(500)
                 console.log(count)
                 count ++
@@ -196,7 +201,17 @@ class Payload {
                 }
             }
         }
-        serial.deviceBusy = true
+        if (serial.deviceState == deviceStates.disconnected) {
+            if (!await serial.sendToDownloadMode()) {
+                return exit({
+                    ok: false,
+                    withError: false,
+                    message: 'could not go to download mode'
+                }, this)
+            }
+        }
+
+        serial.deviceState = deviceStates.busy
 
         let dataToSend = defs.operations[this.op].code
         if (defs.operations[this.op].needsArgs) {
@@ -284,24 +299,22 @@ payloads.showFrame = async function (frameBytes) {
             ok: false,
             message: `invalid frameBytes length (expected: ${project.colorConfig.frameDataLength}, got: ${frameBytes.length/2})`
         })
-    }    
-    let p = new Payload({
+    }
+
+    return await new Payload({
         operation: 'showFrame'+ project.dataType,
         otherData: frameBytes
     })
-    let response = await p.execute()
-    return response
 }
 
 payloads.readMemory = async function (start, offset) {
     let args = intToHex(start).padStart(4,'0')
     args += intToHex(offset)
-    let p = new Payload({
+
+    return await new Payload({
         operation: 'readMemory',
         args: args
     })
-    let response = await p.execute()
-    return response
 }
 
 payloads.writeMemory = async function (start, offset, otherData) {
@@ -313,41 +326,34 @@ payloads.writeMemory = async function (start, offset, otherData) {
     }
     let args = intToHex(start).padStart(4,'0')
     args += intToHex(offset)
-    let p = new Payload({
+
+    return await new Payload({
         operation: 'writeMemory',
         args: args,
         otherData: otherData
     })
-    let response = await p.execute()
-    return response
 }
 
 payloads.setMode = async function (mode) {
     let s = hexToInt(mode) < 3 ? mode : '00'
-    let p = new Payload({
+
+    let response = await new Payload({
         operation: 'setMode',
         args: s
     })
-    let response = await p.execute()
+    if (response.ok) {
+        serial.deviceState = deviceStates.disconnected
+    }
     return response
 }
 payloads.setBrightness = async function (brightness) {
     let b = hexToInt(brightness) < 5 ? brightness : 5
-    let p = new Payload({
+    return await new Payload({
         operation: 'setBrightness',
         args: b
     })
-    let response = await p.execute()
-    return response
 }
 
-payloads.hardReset = async function () {
-    let p = new Payload({
-        operation: 'hardReset',
-    })
-    let response = await p.execute()
-    return response
-}
 
 
 

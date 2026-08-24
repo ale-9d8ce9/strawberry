@@ -1,11 +1,8 @@
-
-
 #leds {
     display: grid;
     height: min(var(--leds-max-w), var(--page-height));
     grid-template-columns: repeat(8, auto);
     aspect-ratio: 1/1;
-    rotate: var(--leds-rotation);
     transition:
         var(--transition-settings),
         rotate var(--transition-ledsRotation);
@@ -24,11 +21,17 @@
         transition-delay: var(--delay), 0s !important;
     }
 }
-@property --leds-rotation {
-  syntax: "<angle>";
-  inherits: true;
-  initial-value: 0deg;
+
+body.flashing #leds {
+    left: 50%;
+    pointer-events: none;
+
+    #leds-light-bleed {
+        opacity: 0;
+    }
 }
+
+
 
 
 #leds-light-bleed {
@@ -60,14 +63,13 @@ led {
     --translate-y: 0%;
     --delay: 0s;
     transition: all var(--transition-normal) var(--delay), background-color 0s 0s;
-    rotate: calc(var(--leds-rotation) * -1);
     scale: .7;
     border-radius: 16%;
     translate: var(--translate-x) var(--translate-y);
     border: .1rem solid #ffffff40;
     outline: 1px solid transparent;
 }
-#leds[funAnimation] > led {
+body.flashing #leds > led {
     transition: all var(--transition-ledsRotation);
     animation: 
         topBottom 2s infinite,
@@ -138,4 +140,24 @@ led {
 #picker {
     width: 15rem;
     image-rendering: pixelated;
+}
+
+
+flashingStatus {
+    width: 100%;
+    height: var(--flashing-status-height);
+    top: var(--page-height);
+    position: fixed;
+    transition: top var(--transition-normal);
+
+    display: flex;
+    flex-direction: column-reverse;
+
+    & > * {
+        width: 100%;
+    }
+    div {
+        display: flex;
+        justify-content: space-between;
+    }
 }

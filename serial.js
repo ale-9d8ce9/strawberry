@@ -2,8 +2,7 @@ let serial = {
     port: null,
     reader: null,
     writer: null,
-    deviceBusy: false,
-    deviceConnected: false,
+    deviceState: 'none',
 
     currentlyReceiving: '',
     history: [],
@@ -15,18 +14,22 @@ let serial = {
         parity: 'none',
         bufferSize: 510
     },
-    filters: [
-        {usbVendorId: 0x1A86, usbProductId: 0x7523},
-        {usbVendorId: 0x2341, usbProductId: 0x0043}, // arduino uno official
-    ]
+    filter: {usbVendorId: 0x1A86, usbProductId: 0x7523}
 }
+
+const deviceStates = Object.freeze({
+    connected: 'connected',
+    disconnected: 'disconnected',
+    busy: 'busy',
+    none: 'none' // no port open
+})
+
 
 serial.connect = async function () {
     try {
-        serial.port = await navigator.serial.requestPort({filters: serial.filters})
+        serial.port = await navigator.serial.requestPort({filters: [serial.filter]})
         await serial.port.open(serial.serialOptions)
         console.log('connected to', serial.port)
-        serial.deviceBusy = false
         serial.read()
         await serial.reconnect()
     } catch (e) {
@@ -36,7 +39,6 @@ serial.connect = async function () {
 }
 
 serial.reconnect = async function () {
-    serial.deviceConnected = false
     if (serial.currentlyReceiving !== '') {
         serial.history.push({dir: 'received', content: serial.currentlyReceiving})
         serial.currentlyReceiving = ''
@@ -53,9 +55,7 @@ serial.reconnect = async function () {
     }
     serial.history.push({dir: 'received', content: serial.currentlyReceiving})
     serial.currentlyReceiving = ''
-    console.log('reconnected')
-    serial.deviceConnected = await serial.sendToDownloadMode()
-    return serial.deviceConnected
+    return await serial.sendToDownloadMode()
 }
 
 serial.read = async function () {
@@ -70,9 +70,6 @@ serial.read = async function () {
                 if (value) {
                     let hex = uint8ArrayToHexString(value)
                     serial.currentlyReceiving += hex
-                    if (config.logAllSerial) {
-                        console.log('rx', hex)
-                    }
                     if (config.updateSerialMonitor) {
                         serial.updateSerialMonitor()
                     }
@@ -135,11 +132,8 @@ serial.send = async function (hexString, xor = false) {
     }
 
     serial.history.push({dir: 'sent', content: hexString})
-    serial.write(uint8)
+    await serial.write(uint8)
 
-    if (config.logAllSerial) {
-        console.log('tx', hexString)
-    }
     if (config.updateSerialMonitor) {
         serial.updateSerialMonitor()
     }
@@ -151,8 +145,7 @@ navigator.serial?.addEventListener('disconnect', (e) => {
     if (e.target === serial.port) {
         console.log('device unplugged')
         serial.reading = false
-        serial.deviceBusy = false
-        serial.deviceConnected = false
+        serial.deviceState = deviceStates.disconnected
         serial.port = null
     }
     serial.updateButtons()
@@ -185,7 +178,10 @@ serial.sendToDownloadMode = async function () {
     await serial.resetDevice()
     await delay(1380)
     let response = await serial.send(defs.status.downloadMode, false)
-    return response == defs.status.downloadMode + defs.status.ready
+
+    let connected = response == defs.status.downloadMode + defs.status.ready
+    connected ? serial.deviceState = deviceStates.connected : serial.deviceState = deviceStates.disconnected
+    return connected
 }
 
 serial.updateSerialMonitor = function () {
@@ -215,5 +211,5 @@ serial.updateSerialMonitor = function () {
 }
 
 serial.updateButtons = function () {
-    document.getElementById('connectBtn').disabled = serial.deviceConnected
+    document.getElementById('connectBtn').disabled = serial.deviceState == deviceStates.disconnected
 }

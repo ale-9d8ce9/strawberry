@@ -2,8 +2,13 @@ controls {
     width: var(--controls-width);
     position: fixed;
     right: 0;
+    transition: var(--transition-normal);
 }
 
+body.flashing controls, page.showSettings controls {
+    translate: 100% 0;
+    opacity: 0;
+}
 
 
 #selectedColor {

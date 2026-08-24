@@ -158,32 +158,74 @@ class Project {
     }
 
     async flash() {
+        function exit() {
+            document.querySelector('body').classList.remove('flashing')
+        }
+        if (serial.deviceState == deviceStates.none) {
+            alert('no device connected')
+            return exit()
+        }
+        
+        document.querySelector('body').classList.add('flashing')
         serial.flashingStatus = structuredClone(defs.flashingStatusStart)
+        serial.flashingStatus.total = (this.frames.length * 2) + 3
 
-        serial.flashingStatus.status = 'writing header'
+        if (serial.deviceState == deviceStates.disconnected) {
+            serial.flashingStatus.total++
+            updateFlashingStatus('entering download mode')
+            await serial.sendToDownloadMode()
+        }
+
+        updateFlashingStatus('writing header')
         let headerString = this.generateHeader()
         let headerFlashResult = await payloads.writeMemory(this.settings.projectStart, defs.projectHeaderSize, headerString)
         if (!headerFlashResult.continue) {
-            return
+            return exit()
         }
 
 
-        serial.flashingStatus.status = 'writing frames'
         let dataStart = this.settings.projectStart + defs.projectHeaderSize
-
         let frameFlashResult
         for (let i = 0; i < this.frames.length; i++) {
+            updateFlashingStatus('writing frame '+i)
             const frame = this.frames[i];
             frameFlashResult = await frame.flash(dataStart + (this.colorConfig.frameDataLength * i))
             if (!frameFlashResult.continue) {
-                return
+                return exit()
             }
         }
 
 
-        serial.flashingStatus.status = 'verifying header'
+        updateFlashingStatus('verifying header')
         headerFlashResult = await payloads.readMemory(this.settings.projectStart, defs.projectHeaderSize)
-        console.log(headerFlashResult)
+        if (!headerFlashResult.continue) {
+            return exit()
+        }
+        if (!headerFlashResult.ok || headerFlashResult.response.join('') != headerString) {
+            // retry
+            console.error('header is worng')
+        }
+
+
+        let readResult
+        for (let i = 0; i < this.frames.length; i++) {
+            updateFlashingStatus('verifying frame '+i)
+            const frame = this.frames[i];
+            let frameAddress = dataStart + (this.colorConfig.frameDataLength * i)
+            readResult = await payloads.readMemory(frameAddress, project.colorConfig.frameDataLength)
+            if (!readResult.continue) {
+                return exit()
+            }
+            if (!readResult.ok || readResult.response.join('') != frame.exportLedData()) {
+                //retry
+                console.error('frame is wrong',i)
+            }
+        }
+
+
+        updateFlashingStatus('rebooting')
+        let rebootResult = await payloads.setMode('01')
+        exit()
     }
 
     generateHeader() {

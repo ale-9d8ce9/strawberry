@@ -1,4 +1,3 @@
-#include <avr/wdt.h> // Watchdog Timer library
 #include <EEPROM.h>
 #include <FastLED.h>
 #include <Wire.h>
@@ -33,7 +32,6 @@
 #define opWriteMemory   0x87
 #define opSetMode       0x29
 #define opSetBrightness 0x2D
-#define opHardReset     0x20
 #define opShowFrame6b   0x04
 #define opShowFrame8b   0x08
 
@@ -86,7 +84,6 @@ uint8_t nFrames = 0;
 uint8_t frameDelay = 0;
 uint8_t maxBrightness = 0;
 bool autoBrightness = true;
-uint8_t playAnimationOnBoot = 0;
 uint8_t colorCompressionAlgorithm = 0;
 uint8_t animationRotation = 0;
 bool buttonSwitchMode = true;
@@ -99,7 +96,6 @@ uint8_t previousBtn = digitalRead(BUTTON_PIN);
 
 
 void setup() {
-  MCUSR = 0;wdt_disable();
   usb.begin(SERIAL_SPEED, SERIAL_CONF);
   usb.write(stsBooting);
 
@@ -131,7 +127,6 @@ void setup() {
   initWater();
   initAnimation();
   delay(50);
-  mode = playAnimationOnBoot;
 
   // check to go in serial mode
   if (usb.available() && usb.read() == stsDownloadMode) {
@@ -144,6 +139,7 @@ void setup() {
   }
 
   // done
+  digitalWrite(GREEN_LED_PIN, 0);
   usb.write(stsBootComplete);
   usb.write(stsAllOk);
   usb.end();
@@ -158,8 +154,9 @@ void loop() {
   if (currentBtn != 1 && currentBtn != previousBtn) {
     delay(50);
     mode ^= 1;
-    previousBtn = currentBtn;
   }
+  previousBtn = currentBtn;
+
   if (mode == waterSimulation) {
     tickWaterSimulation();
     delay(50);
@@ -167,7 +164,10 @@ void loop() {
     animationNextFrame();
     delay(frameDelay);
   }
-  autoBrightnessControl();
+  
+  if (autoBrightness) {
+    autoBrightnessControl();
+  }
 }
 
 
@@ -197,9 +197,6 @@ void executePayload() {
   msgLength = 0;
 
   switch (op) {
-    case opHardReset:
-      hardReset();
-      break;
     case opSetMode:
       setMode();
       break;
@@ -291,6 +288,8 @@ void setMode() {
   usb.write(stsExecuting);
   usb.write(op);
   mode = newMode;
+  initAnimation();
+  initWater();
   closeUsbMsgAllOk();
 }
 
@@ -331,17 +330,6 @@ void setMaxBrightness() {
 
 
 
-// full reboot
-void hardReset() {
-  if (mode) return;
-  usb.write(stsExecuting);
-  usb.write(op);
-  usb.write(stsAllOk);
-  usb.write(stsWait);
-  wdt_enable(WDTO_15MS);
-  while (1) {}
-}
-
 
 void waitForSerial() {
   while (usb.available() == 0) {}
@@ -381,12 +369,18 @@ uint8_t ledIndexFromXY(uint8_t x, uint8_t y) {
 void error(uint8_t code) {
   usb.write(stsError);
   usb.write(code);
+  digitalWrite(RED_LED_PIN, 1);
+  while (true) {
+    yield();
+  }
 }
 void fatalError(uint8_t code) {
   usb.write(stsFatalError);
   usb.write(code);
-  delay(1500);
-  hardReset();
+  digitalWrite(RED_LED_PIN, 1);
+  while (true) {
+    yield();
+  }
 }
 
 

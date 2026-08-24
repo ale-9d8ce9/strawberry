@@ -7,7 +7,16 @@ framesPanel {
     padding-bottom: var(--frames-width);
     position: fixed;
     z-index: 2;
+    transition: var(--transition-normal);
 }
+
+
+body.flashing framesPanel, page.showSettings framesPanel {
+    translate: -100% 0;
+    opacity: 0;
+}
+
+
 
 #frames {
     overflow: scroll;

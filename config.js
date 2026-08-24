@@ -62,12 +62,6 @@ const defs = {
             argsLength: 1,
             returnsData: false
         },
-        hardReset: {
-            code: '20',
-            needsArgs: false,
-            needsOtherData: false,
-            returnsData: false
-        },
         showFrame6b: {
             code: '04',
             needsArgs: false,

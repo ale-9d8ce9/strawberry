@@ -17,12 +17,18 @@ body {
     background-color: var(--page-bg);
 }
 
+body.flashing {
+    --page-height: calc(100vh - var(--flashing-status-height))
+}
 page {
     position: fixed;
-    inset: 0;
     display: flex;
     flex-direction: row;
-    perspective: 2000px;
+    top: 0;
+    left: 0;
+    right: 0;
+    transition: height var(--transition-normal);
+    height: var(--page-height);
 }
 
 

@@ -3,6 +3,7 @@
 
 void initAnimation() {
   uint16_t projectStart;
+  uint8_t playAnimationOnBoot;
   projectStart = readMemory(0) << 8;
   projectStart += readMemory(1);
   framesDataStart = projectStart + PROJECT_HEADER_SIZE;
@@ -22,14 +23,16 @@ void initAnimation() {
   animationRotation = others & 0b11;          others = others >> 2;
   colorCompressionAlgorithm = others & 0b111; others = others >> 3;
   autoBrightness = others & 1;                others = others >> 1;
-  playAnimationOnBoot =  others & 1;    //      others = others >> 1;
+  playAnimationOnBoot =  others & 1;    //    others = others >> 1;
+
+  playAnimationOnBoot ? mode = animation : mode = waterSimulation;
 }
 
 
 
 
 
-typedef void (*funcArray)(int);
+typedef void (*funcArray)(uint8_t);
 funcArray playFrame[] = {playFrame6b, playFrame8b};
 
 

@@ -157,6 +157,16 @@ function loadImage(src) {
 
 
 
+function updateFlashingStatus(sts) {
+    serial.flashingStatus.progress++
+    document.getElementById('flashingStatus-status').innerText = sts
+    document.getElementById('flashingStatus-count').innerText = serial.flashingStatus.progress +' / '+ serial.flashingStatus.total
+    document.getElementById('flashingStatus-progressBar').setAttribute('max', serial.flashingStatus.total)
+    document.getElementById('flashingStatus-progressBar').value = serial.flashingStatus.progress
+}
+
+
+
 async function start() {
     if (config.useShortcuts) {
         setupShortcuts()

@@ -131,6 +131,17 @@
             </settings>
         </settingsContainer>
     </page>
+
+
+    <flashingStatus>
+        <progress id="flashingStatus-progressBar"></progress>
+        <div>
+            <status id="flashingStatus-status"></status>
+            <count id="flashingStatus-count"></count>
+        </div>
+    </flashingStatus>
+
+
     <hexMonitor class="window" style="top:100px;left:200px">
         <div class="window-handle">
             <div>
@@ -140,6 +151,7 @@
             <div>
                 <button onclick="serial.clearHistory()">clear</button>
                 <button onclick="serial.resetDevice()">reset device</button>
+                <button onclick="serial.sendToDownloadMode()">dwl mode</button>
                 <button onclick="serial.connect()">connect</button>
                 <input type="text" id="inpt" placeholder="send to device">
                 <button onclick="serial.send(document.getElementById('inpt').value, false);document.getElementById('inpt').value = ''">send</button>
@@ -153,6 +165,7 @@
             <input type="text" id="pm-args" placeholder="args"><br>
             <textarea id="pm-otherData" onmousemove="event.stopPropagation()"></textarea>
             <button onclick="payloads.runPMInputs()">run</button>
+            <button onclick="payloads.updatePMHistory()">update history</button>
         </div>
         <div id="payloadMonitor-content"></div>
     </payloadMonitor>

@@ -46,11 +46,6 @@ page.showSettings {
         height: var(--settings-height);
     }
 
-
-    framesPanel, controls {
-        opacity: .1;
-        /* z-index: -10; */
-    }
 }
 
 
