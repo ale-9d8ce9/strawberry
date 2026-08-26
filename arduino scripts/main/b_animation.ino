@@ -19,11 +19,11 @@ void initAnimation() {
   maxBrightness = readMemory(projectStart +3);
   uint8_t others = readMemory(projectStart +4);
 
-  buttonSwitchMode = others & 1;              others = others >> 1;
-  animationRotation = others & 0b11;          others = others >> 2;
-  colorCompressionAlgorithm = others & 0b111; others = others >> 3;
+  playAnimationOnBoot = others & 1;           others = others >> 1;
   autoBrightness = others & 1;                others = others >> 1;
-  playAnimationOnBoot =  others & 1;    //    others = others >> 1;
+  colorCompressionAlgorithm = others & 0b111; others = others >> 3;
+  animationRotation = others & 0b11;          others = others >> 2;
+  buttonSwitchMode = others & 1;
 
   playAnimationOnBoot ? mode = animation : mode = waterSimulation;
 }

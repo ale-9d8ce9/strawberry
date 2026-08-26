@@ -237,11 +237,11 @@ class Project {
             let playAnimationOnBoot = proj.settings.playAnimationOnBoot & 0b1
 
             let others = 0
-            others += buttonSwitchMode;             others = others << 1
-            others += animationRotation;            others = others << 2
-            others += colorCompressionAlgorithm;    others = others << 3
+            others += buttonSwitchMode;             others = others << 2
+            others += animationRotation;            others = others << 3
+            others += colorCompressionAlgorithm;    others = others << 1
             others += autoBrightness;               others = others << 1
-            others += playAnimationOnBoot;          //others = others << 1
+            others += playAnimationOnBoot;
             return others
         }
 
