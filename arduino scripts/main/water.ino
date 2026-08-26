@@ -7,7 +7,7 @@ struct particle {
   uint8_t x;
   uint8_t y;
 };
-struct particle waterParticles[NWaterParticles];
+struct particle waterParticles[64];
 uint8_t cells[8] = {0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff};
 
 
@@ -273,7 +273,7 @@ void moveParticleX(uint8_t i) {
 
 void simulate() {
   FastLED.clear();
-  for (uint8_t i = 0; i < NWaterParticles; i++) {
+  for (uint8_t i = 0; i < waterAmount; i++) {
     movecell(i);
     uint8_t led = ledIndexFromXY(waterParticles[i].x, waterParticles[i].y);
     leds[led] = CRGB(waterColorR, waterColorG, waterColorB);
@@ -285,7 +285,7 @@ void simulate() {
 
 
 void initWater() {
-  for (uint8_t i = 0; i < NWaterParticles; i++) {
+  for (uint8_t i = 0; i < waterAmount; i++) {
     uint8_t x = i % 8;
     uint8_t y = i / 8;
     waterParticles[i].x = x;

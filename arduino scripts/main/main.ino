@@ -15,8 +15,6 @@
 #define NUM_LEDS 64
 #define PROJECT_HEADER_SIZE 5
 
-#define NWaterParticles 0x04
-
 
 #define stsBootComplete   0xBD
 #define stsBooting        0xB1
@@ -77,6 +75,8 @@ uint8_t myrandom = 0;
 uint8_t waterColorR;
 uint8_t waterColorG;
 uint8_t waterColorB;
+
+uint8_t waterAmount = 18;
 
 
 uint16_t framesDataStart = 0;

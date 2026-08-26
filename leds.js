@@ -13,7 +13,8 @@ class Project {
         this.settings = {
             frameDelay: 50,
             brightness: 12,
-            waterColor: 40,
+            waterColor: 50,
+            waterAmount: 40,
             projectStart: 2,
             animationRotation: 0,
             buttonSwitchMode: true,
@@ -248,6 +249,7 @@ class Project {
         let nFrames = intToHex(this.frames.length)
         let frameDelay = intToHex(this.settings.frameDelay)
         let waterColor = intToHex(this.settings.waterColor)
+        let waterAmount = intToHex(this.settings.waterAmount)
         let brightness = intToHex(this.settings.brightness)
         let others = intToHex(generateOthers(this))
 
@@ -255,6 +257,7 @@ class Project {
             nFrames,
             frameDelay,
             waterColor,
+            waterAmount,
             brightness,
             others
         ].join('')

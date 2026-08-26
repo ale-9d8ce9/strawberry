@@ -107,7 +107,7 @@ const defs = {
         }]
     ]),
 
-    projectHeaderSize: 5,
+    projectHeaderSize: 6,
 
     flashingStatusStart: {
         progress: 0,
