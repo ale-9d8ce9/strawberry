@@ -7,7 +7,7 @@ struct particle {
   uint8_t x;
   uint8_t y;
 };
-struct particle waterParticles[64];
+struct particle waterParticles[23];
 uint8_t cells[8] = {0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff};
 
 

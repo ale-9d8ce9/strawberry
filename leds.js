@@ -5,15 +5,17 @@ class Project {
             return
         }
         this.dataType = args.dataType
-        this.selectedColor = 0
         this.selectedFrame = -1
         this.colorConfig = defs.colorConfigs.get(this.dataType)
         this.colors = this.colorConfig.colors
 
+        this.selectedColor = 0
+        document.getElementById('selectedColor').style.backgroundColor = this.colors[this.selectedColor]
+
         this.settings = {
             frameDelay: 50,
             brightness: 12,
-            waterColor: 50,
+            waterColor: 20,
             waterAmount: 40,
             projectStart: 2,
             animationRotation: 0,
@@ -32,6 +34,23 @@ class Project {
         this.lightBleedCanvas.height = 32
 
         this.frames = []
+    }
+
+    deleteFrame(frameN) {
+        event.stopPropagation()
+        if (this.frames.length == 1) {
+            return
+        }
+
+        this.frames.splice(frameN, 1)
+        
+        document.getElementById('frames').innerHTML = ''
+        for (let i = 0; i < this.frames.length; i++) {
+            this.frames[i].generateIcon(i)
+        }
+
+        if (this.selectedFrame == this.frames.length) this.selectedFrame--
+        this.selectFrame(this.selectedFrame)
     }
 
     addFrame(frameData = []) {
@@ -277,26 +296,6 @@ class Frame {
         }
         this.dataType = dataType
 
-        // frame icon
-        this.iconElement = document.createElement('canvas')
-        this.iconElement.id = 'iconFrame'+frameNumber
-        this.iconElement.width = 8
-        this.iconElement.height = 8
-        let frameContainer = document.createElement('div')
-        frameContainer.id = 'iconFrameContainer'+frameNumber
-        frameContainer.classList.add('frame')
-        frameContainer.setAttribute('onclick', `project.selectFrame(${frameNumber})`)
-        let deleteBtn = document.createElement('button')
-        deleteBtn.addEventListener('click', () => project.deleteFrame(frameNumber))
-        deleteBtn.innerHTML = '<img src="icons/delete.svg">'
-        let moveBtn = document.createElement('button')
-        moveBtn.addEventListener('click', () => project.moveFrame(frameNumber))
-        moveBtn.innerHTML = '<img src="icons/move.svg">'
-        frameContainer.append(this.iconElement)
-        frameContainer.append(deleteBtn)
-        frameContainer.append(moveBtn)
-        document.getElementById('frames').append(frameContainer)
-
         if (frameData.length == 0) {
             let c = project.colorConfig.defaultColor
             this.leds = [
@@ -316,17 +315,22 @@ class Frame {
             }
             this.leds = frameData
         }
+
+        this.generateIcon(frameNumber)
     }
 
-    renderPixel(row, col) {
+    renderPixel(row, col, iconOnly = false) {
         const colorIndex = this.leds[row][col];
-        let ledIndex = row * this.leds[row].length + col
-        document.getElementsByClassName('led')[ledIndex].style.backgroundColor = project.colors[colorIndex]
 
         // frame icon
         const ctxIcon = this.iconElement.getContext("2d")
         ctxIcon.fillStyle = project.colors[ this.leds[row][col] ]
         ctxIcon.fillRect(col, row, 1, 1)
+        if (iconOnly) return
+        
+        // pixel
+        let ledIndex = row * this.leds[row].length + col
+        document.getElementsByClassName('led')[ledIndex].style.backgroundColor = project.colors[colorIndex]
 
         // light bleed
         if (project.lightBleedCanvas) {
@@ -413,6 +417,44 @@ class Frame {
     async flash(frameAddress) {
         let data = this.exportLedData()
         return await payloads.writeMemory(frameAddress, project.colorConfig.frameDataLength, data)
+    }
+
+    generateIcon(frameNumber) {
+        this.iconElement = document.createElement('canvas')
+        this.iconElement.id = 'iconFrame'+frameNumber
+        this.iconElement.width = 8
+        this.iconElement.height = 8
+        let frameContainer = document.createElement('div')
+        frameContainer.id = 'iconFrameContainer'+frameNumber
+        frameContainer.classList.add('frame')
+        
+        frameContainer.setAttribute('onclick', `project.selectFrame(${frameNumber})`)
+
+        let deleteBtn = document.createElement('button')
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            project.deleteFrame(frameNumber)
+        })
+        deleteBtn.innerHTML = '<img src="icons/delete.svg">'
+
+        let moveBtn = document.createElement('button')
+        moveBtn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            project.moveFrame(frameNumber)
+        })
+        moveBtn.innerHTML = '<img src="icons/move.svg">'
+
+        frameContainer.append(this.iconElement)
+        frameContainer.append(deleteBtn)
+        frameContainer.append(moveBtn)
+        document.getElementById('frames').append(frameContainer)
+
+        // render icon pixels
+        for (let row = 0; row < this.leds.length; row++) {
+            for (let col = 0; col < this.leds[row].length; col++) {
+                this.renderPixel(row, col, true)
+            }        
+        }
     }
 }
 

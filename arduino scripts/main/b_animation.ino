@@ -16,7 +16,7 @@ void initAnimation() {
   memcpy_P(rgb, colors8b[waterColor], 3);
   waterColorR = rgb[0]; waterColorG = rgb[1]; waterColorB = rgb[2];
 
-  waterAmount = readMemory(projectStart +3);
+  //waterAmount = readMemory(projectStart +3);
 
   maxBrightness = readMemory(projectStart +4);
   uint8_t others = readMemory(projectStart +5);
