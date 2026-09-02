@@ -1,6 +1,9 @@
 #include <FastLED.h>
 
-#define LED_PIN     9
+#define BUTTON_PIN 7
+#define GREEN_LED_PIN 2
+#define RED_LED_PIN 10
+#define LED_PIN 9
 #define NUM_LEDS    64
 #define BRIGHTNESS  8
 #define LED_TYPE    WS2812B
@@ -14,11 +17,19 @@ void setup() {
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   FastLED.clear();
   FastLED.show();
+  // precharge NEVER CHANGE THIS CODE
+  digitalWrite(3, HIGH);
+  pinMode(3, OUTPUT);
   delay(50);
-  pinMode(3, OUTPUT); // precharge
   digitalWrite(3, LOW);
   Serial.begin(9600);
   printAnalogInput();
+  pinMode(GREEN_LED_PIN, OUTPUT);
+  pinMode(RED_LED_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  analogWrite(GREEN_LED_PIN, 10);
+  analogWrite(RED_LED_PIN, 10);
+
   delay(500);
 }
 

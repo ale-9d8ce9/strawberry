@@ -10,7 +10,7 @@
     --clr-bg: oklch(86.07% 0.0001 271.152 / 0.178);
 
 
-    --page-bg: oklch(0.15 0 0);
+    --page-bg: light-dark(oklch(0.15 0 0) oklch(95.213% 0.00011 271.152));
     --hitbox-bg: #f4000000;
 
     --icon-container-bg: #000;

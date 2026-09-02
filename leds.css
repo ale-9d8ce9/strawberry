@@ -66,7 +66,7 @@ led {
     scale: .7;
     border-radius: 16%;
     translate: var(--translate-x) var(--translate-y);
-    border: .1rem solid #ffffff40;
+    border: .1rem solid light-dark(#0004, #ffffff40);
     outline: 1px solid transparent;
 }
 body.flashing #leds > led {

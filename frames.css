@@ -4,10 +4,11 @@ framesPanel > *{
 }
 
 framesPanel {
-    padding-bottom: var(--frames-width);
     position: fixed;
     z-index: 2;
     transition: var(--transition-normal);
+    overflow: scroll;
+    height: 100%;
 }
 
 
@@ -17,12 +18,6 @@ body.flashing framesPanel, page.showSettings framesPanel {
 }
 
 
-
-#frames {
-    overflow: scroll;
-    display: inline-block;
-    height: 100%;
-}
 
 .frame {
     width: calc(var(--frames-width) - 1rem);
@@ -51,9 +46,6 @@ body.flashing framesPanel, page.showSettings framesPanel {
         }
     }
 }
-.frame:last-child{
-    margin-bottom: calc(var(--frames-width) + 1rem);
-}
 
 .frame.selected {
     background-color: var(--clr);
@@ -66,13 +58,15 @@ body.flashing framesPanel, page.showSettings framesPanel {
 
 
 #addFrame {
-    position: fixed;
-    bottom: 0;
-    left: 0;
+    width: calc(var(--frames-width) / 2);
     aspect-ratio: 1/1;
     background-color: var(--clr-d);
-    padding: .5rem;
     transition: var(--transition-normal);
+    margin: 1rem auto;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     img {
         width: 100%;

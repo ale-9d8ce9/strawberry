@@ -8,6 +8,8 @@ class Project {
         this.selectedFrame = -1
         this.colorConfig = defs.colorConfigs.get(this.dataType)
         this.colors = this.colorConfig.colors
+        this.backgroundColor = this.colorConfig.defaultColor
+        this.nextFrameID = 0
 
         this.selectedColor = 0
         document.getElementById('selectedColor').style.backgroundColor = this.colors[this.selectedColor]
@@ -37,24 +39,20 @@ class Project {
     }
 
     deleteFrame(frameN) {
-        event.stopPropagation()
         if (this.frames.length == 1) {
             return
         }
-
+        console.log(frameN)
+        this.frames[frameN].frameContainer.remove()
         this.frames.splice(frameN, 1)
-        
-        document.getElementById('frames').innerHTML = ''
-        for (let i = 0; i < this.frames.length; i++) {
-            this.frames[i].generateIcon(i)
+        for (let i = frameN; i < this.frames.length; i++) {
+            this.frames[i].updateEventsIndex(i)
         }
-
-        if (this.selectedFrame == this.frames.length) this.selectedFrame--
-        this.selectFrame(this.selectedFrame)
     }
 
     addFrame(frameData = []) {
-        let nframe = new Frame(this.dataType, this.frames.length, frameData)
+        let nframe = new Frame(this.dataType, this.nextFrameID, frameData)
+        this.nextFrameID++
 
         this.frames.push(nframe)
         this.selectFrame(this.frames.length -1)
@@ -125,6 +123,10 @@ class Project {
 
     paint(pos) {
         this.frames[this.selectedFrame].leds[pos.y][pos.x] = this.selectedColor
+        this.frames[this.selectedFrame].renderPixel(pos.y, pos.x)
+    }
+    setPixelBackgroundColor(pos) {
+        this.frames[this.selectedFrame].leds[pos.y][pos.x] = this.backgroundColor
         this.frames[this.selectedFrame].renderPixel(pos.y, pos.x)
     }
 
@@ -289,12 +291,13 @@ class Project {
 
 
 class Frame {
-    constructor(dataType, frameNumber, frameData = []) {
+    constructor(dataType, frameID, frameData = []) {
         if (!defs.dataTypes.includes(dataType)) {
             throw new Error("unknown data type "+dataType);
             return
         }
         this.dataType = dataType
+        this.id = frameID
 
         if (frameData.length == 0) {
             let c = project.colorConfig.defaultColor
@@ -316,7 +319,7 @@ class Frame {
             this.leds = frameData
         }
 
-        this.generateIcon(frameNumber)
+        this.generateIcon()
     }
 
     renderPixel(row, col, iconOnly = false) {
@@ -419,42 +422,45 @@ class Frame {
         return await payloads.writeMemory(frameAddress, project.colorConfig.frameDataLength, data)
     }
 
-    generateIcon(frameNumber) {
+    generateIcon() {
         this.iconElement = document.createElement('canvas')
-        this.iconElement.id = 'iconFrame'+frameNumber
+        this.iconElement.id = 'iconFrame'+this.id
         this.iconElement.width = 8
         this.iconElement.height = 8
-        let frameContainer = document.createElement('div')
-        frameContainer.id = 'iconFrameContainer'+frameNumber
-        frameContainer.classList.add('frame')
+        this.frameContainer = document.createElement('div')
+        this.frameContainer.id = 'iconFrameContainer'+this.id
+        this.frameContainer.classList.add('frame')
         
-        frameContainer.setAttribute('onclick', `project.selectFrame(${frameNumber})`)
+        this.deleteBtn = document.createElement('button')
+        this.deleteBtn.innerHTML = '<img src="icons/delete.svg">'
 
-        let deleteBtn = document.createElement('button')
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation()
-            project.deleteFrame(frameNumber)
-        })
-        deleteBtn.innerHTML = '<img src="icons/delete.svg">'
+        this.moveBtn = document.createElement('button')
+        this.moveBtn.innerHTML = '<img src="icons/move.svg">'
 
-        let moveBtn = document.createElement('button')
-        moveBtn.addEventListener('click', (e) => {
-            e.stopPropagation()
-            project.moveFrame(frameNumber)
-        })
-        moveBtn.innerHTML = '<img src="icons/move.svg">'
-
-        frameContainer.append(this.iconElement)
-        frameContainer.append(deleteBtn)
-        frameContainer.append(moveBtn)
-        document.getElementById('frames').append(frameContainer)
+        this.updateEventsIndex(this.id)
+        this.frameContainer.append(this.iconElement)
+        this.frameContainer.append(this.deleteBtn)
+        this.frameContainer.append(this.moveBtn)
+        document.getElementById('frames').append(this.frameContainer)
 
         // render icon pixels
         for (let row = 0; row < this.leds.length; row++) {
             for (let col = 0; col < this.leds[row].length; col++) {
                 this.renderPixel(row, col, true)
-            }        
+            }
         }
+    }
+
+    updateEventsIndex(i) {
+        this.frameContainer.setAttribute('onclick', `project.selectFrame(${i})`)
+        this.deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            project.deleteFrame(project.frames.indexOf(this))
+        })
+        this.moveBtn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            project.moveFrame(project.frames.indexOf(this))
+        })
     }
 }
 

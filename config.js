@@ -128,7 +128,10 @@ let global = {
 
 
 defs.shortcuts.a = function (e) {
-    document.getElementById('addFramePopup').classList.toggle('show')
+    let opening = document.getElementById('addFramePopup').classList.toggle('show')
+    if (!opening) {
+        return
+    }
     document.getElementById('addFramePopup').style.bottom = (window.innerHeight - global.mousey) + 'px'
     document.getElementById('addFramePopup').style.left = global.mousex + 'px'
     document.getElementById('addFramePopup').style.translate = '-50% 50%'

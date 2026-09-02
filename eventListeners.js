@@ -38,25 +38,41 @@ document.getElementsByClassName('window-handle')[1].addEventListener('mousemove'
 
 
 document.getElementById('leds').addEventListener('mousemove', (e) => {
-    if (e.buttons !== 1) {
+    if (e.buttons !== 1 && e.buttons !== 2) {
         return
     }
     const pos = diviteTouchTargetInGrid(e, 8, 8, document.getElementById('leds'))
-    project.paint(pos)
+    e.buttons === 1 ? project.paint(pos) : project.setPixelBackgroundColor(pos)
 })
 document.getElementById('leds').addEventListener('mousedown', (e) => {
     const pos = diviteTouchTargetInGrid(e, 8, 8, document.getElementById('leds'))
-    project.paint(pos)
+    e.buttons === 1 ? project.paint(pos) : project.setPixelBackgroundColor(pos)
+})
+document.getElementById('leds').addEventListener('contextmenu', (e) => {
+    e.preventDefault()
 })
 
 
 
 
-document.getElementById('addFrame').addEventListener('click', () => {
-    document.getElementById('addFramePopup').classList.toggle('show')
-    document.getElementById('addFramePopup').style.bottom = '1rem'
-    document.getElementById('addFramePopup').style.left = 'var(--frames-width)'
-    document.getElementById('addFramePopup').style.translate = '0 0'
+
+document.getElementById('addFrame').addEventListener('click', (e) => {
+    let popup = document.getElementById('addFramePopup')
+    let y = e.y < window.innerHeight - 32 ? window.innerHeight - e.y : 32
+    popup.classList.add('show')
+    popup.style.bottom = y + 'px'
+    popup.style.left = 'var(--frames-width)'
+    popup.style.translate = '0 50%'
+    let bounding = popup.getBoundingClientRect()
+    console.log(bounding)
+    if (bounding.top < 0) {
+        y -= Math.abs(bounding.top)
+        popup.style.bottom = y + 'px'
+    }
+    if (bounding.bottom > window.innerHeight) {
+        popup.style.bottom = '1rem'
+        popup.style.translate = '0 0'
+    }
 })
 
 document.getElementById('addFramePopup').addEventListener('mouseleave', () => {
