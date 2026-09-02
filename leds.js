@@ -158,11 +158,13 @@ class Project {
         data.frames = this.frames
         data.dataType = this.dataType
 
+        const name = prompt('file name', 'project')
+
         const blob = new Blob([JSON.stringify(data)], { type: 'text/json' })
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = 'ledsProject.json'
+        link.download = name+'.leds'
         link.click()
     }
 
