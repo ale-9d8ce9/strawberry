@@ -8,6 +8,8 @@
     interpolate-size: allow-keywords;
     user-select: none;
     color: var(--txt);
+    user-drag: none;
+    -webkit-user-drag: none;
 }
 
 body {

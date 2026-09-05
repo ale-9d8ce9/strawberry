@@ -42,12 +42,89 @@ class Project {
         if (this.frames.length == 1) {
             return
         }
-        console.log(frameN)
         this.frames[frameN].frameContainer.remove()
         this.frames.splice(frameN, 1)
         for (let i = frameN; i < this.frames.length; i++) {
             this.frames[i].updateEventsIndex(i)
         }
+    }
+
+    startMoveFrame(frameN, e) {
+        if (this.frames.length == 1) {
+            return
+        }
+        this.moveFrameTMP = {y: e.y, n: frameN}
+
+        this.frames[frameN].frameContainer.classList.add('moving')
+        document.querySelector('body').addEventListener('mousemove', this.dragFrame)
+        document.querySelector('body').addEventListener('mouseup', this.stopMoveFrame)
+    }
+    dragFrame(e) {
+        let tmp = project.moveFrameTMP
+        let draggingFrameBox = project.frames[tmp.n].frameContainer.getBoundingClientRect()
+
+        let y = e.y - tmp.y
+        project.frames[tmp.n].frameContainer.style.translate = `0 ${y}px`
+
+        for (let i = 0; i < tmp.n; i++) {
+            if (project.frames[i].frameContainer.getBoundingClientRect().top > draggingFrameBox.top) {
+                project.frames[i].frameContainer.style.translate = '0 100%'
+            } else {
+                project.frames[i].frameContainer.style.translate = '0 0'
+            }
+        }
+        for (let i = tmp.n+1; i < project.frames.length; i++) {
+            if (project.frames[i].frameContainer.getBoundingClientRect().bottom < draggingFrameBox.bottom) {
+                project.frames[i].frameContainer.style.translate = '0 -100%'
+            } else {
+                project.frames[i].frameContainer.style.translate = '0 0'
+            }
+        }
+    }
+    stopMoveFrame(e) {
+        let tmp = project.moveFrameTMP
+        let draggingFrameBox = project.frames[tmp.n].frameContainer.getBoundingClientRect()
+
+        // get how much it moved
+        let frameMovement = 0
+        for (let i = 0; i < tmp.n; i++) {
+            if (project.frames[i].frameContainer.getBoundingClientRect().top > draggingFrameBox.top) {
+                frameMovement--
+            }
+            project.frames[i].frameContainer.style.translate = '0 0'
+        }
+        for (let i = tmp.n+1; i < project.frames.length; i++) {
+            if (project.frames[i].frameContainer.getBoundingClientRect().bottom < draggingFrameBox.bottom) {
+                frameMovement++
+            }
+            project.frames[i].frameContainer.style.translate = '0 0'
+        }
+        project.frames[tmp.n].frameContainer.classList.remove('moving')
+        project.frames[tmp.n].frameContainer.style.translate = '0 0'
+
+        // swap
+        if (frameMovement != 0) {
+            let frameMoved = project.frames.splice(tmp.n, 1)[0]
+            
+            let f = tmp.n + frameMovement
+            if (f != project.frames.length) {
+                project.frames[f].frameContainer.before(frameMoved.frameContainer)
+            } else {
+                project.frames[f-1].frameContainer.after(frameMoved.frameContainer)
+            }
+            
+            project.frames.splice(tmp.n + frameMovement, 0, frameMoved)
+            
+            for (let i = 0; i < project.frames.length; i++) {
+                project.frames[i].updateEventsIndex(i)
+            }
+            
+        }
+
+        // clean up
+        project.moveFrameTMP = undefined
+        document.querySelector('body').removeEventListener('mousemove', project.dragFrame)
+        document.querySelector('body').removeEventListener('mouseup', project.stopMoveFrame)
     }
 
     addFrame(frameData = []) {
@@ -459,9 +536,9 @@ class Frame {
             e.stopPropagation()
             project.deleteFrame(project.frames.indexOf(this))
         })
-        this.moveBtn.addEventListener('click', (e) => {
+        this.moveBtn.addEventListener('mousedown', (e) => {
             e.stopPropagation()
-            project.moveFrame(project.frames.indexOf(this))
+            project.startMoveFrame(project.frames.indexOf(this), e)
         })
     }
 }

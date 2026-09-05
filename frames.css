@@ -45,6 +45,9 @@ body.flashing framesPanel, page.showSettings framesPanel {
             width: min(100%, var(--icon-size));
         }
     }
+    &.moving {
+        transition: translate 0s;
+    }
 }
 
 .frame.selected {
