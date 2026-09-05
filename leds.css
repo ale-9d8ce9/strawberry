@@ -137,7 +137,7 @@ body.flashing #leds > led {
 
 
 
-#picker {
+#picker, #recentColors {
     width: 15rem;
     image-rendering: pixelated;
 }

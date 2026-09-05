@@ -12,7 +12,8 @@ class Project {
         this.nextFrameID = 0
 
         this.selectedColor = 0
-        document.getElementById('selectedColor').style.backgroundColor = this.colors[this.selectedColor]
+        this.recentColors = [this.selectedColor]
+        this.selectColor(0)
 
         this.settings = {
             frameDelay: 50,
@@ -27,6 +28,7 @@ class Project {
         }
 
         this.updateColorPicker()
+        this.updateRecentsColorsPicker()
 
         if (!args.lightBleedCanvas) {
             args.lightBleedCanvas = document.getElementById('leds-light-bleed')
@@ -46,6 +48,12 @@ class Project {
         this.frames.splice(frameN, 1)
         for (let i = frameN; i < this.frames.length; i++) {
             this.frames[i].updateEventsIndex(i)
+        }
+
+        if (frameN < this.frames.length) {
+            this.selectFrame(frameN)
+        } else {
+            this.selectFrame(frameN-1)
         }
     }
 
@@ -193,9 +201,50 @@ class Project {
 
         document.getElementById('picker').addEventListener('click', (e) => {
             const pos = diviteTouchTargetInGrid(e, this.colorConfig.pickerSize.x, this.colorConfig.pickerSize.y)
-            project.selectedColor = pos.y * this.colorConfig.pickerSize.y + pos.x
-            document.getElementById('selectedColor').style.backgroundColor = this.colors[this.selectedColor]
+            let color = pos.y * this.colorConfig.pickerSize.y + pos.x
+            project.selectColor(color)
         })
+
+        const recent = document.getElementById('recentColors')
+        recent.width = 8
+        recent.height = 4
+
+        document.getElementById('recentColors').addEventListener('click', (e) => {
+            const pos = diviteTouchTargetInGrid(e, 8, 4)
+            let i = pos.y * 4 + pos.x
+            project.selectColor(project.recentColors[i])
+        })
+    }
+
+    updateRecentsColorsPicker() {
+        const canvas = document.getElementById('recentColors')
+        const ctx = canvas.getContext("2d")
+
+        for (let y = 0; y < 4; y++) {
+            for (let x = 0; x < 8; x++) { 
+                let i = x+y*8
+                if (i == this.recentColors.length) {
+                    return
+                }
+                ctx.fillStyle = this.colors[this.recentColors[i]];
+                ctx.fillRect(x,y,1,1)
+            }
+        }
+
+    }
+
+    selectColor(color) {
+        this.selectedColor = color
+        document.getElementById('selectedColor').style.backgroundColor = this.colors[this.selectedColor]
+
+        if (!this.recentColors.includes(color)) {
+            this.recentColors.unshift(color)
+            if (this.recentColors.length == 33) {
+                this.recentColors.pop()
+            }
+
+            this.updateRecentsColorsPicker()
+        }
     }
 
     paint(pos) {
@@ -546,8 +595,8 @@ class Frame {
 
 
 
-leds = {}
-project = null
+let leds = {}
+let project = null
 
 
 leds.import = async function () {
