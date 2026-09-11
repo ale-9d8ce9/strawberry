@@ -94,7 +94,9 @@ void testRandomBlink() {
 }
 
 void printAnalogInput() {
-  Serial.print("A0: ");
+  Serial.print("btn: ");
+  Serial.print(digitalRead(7));
+  Serial.print(", A0: ");
   Serial.print(analogRead(0));
   Serial.print(", A1: ");
   Serial.print(analogRead(1));

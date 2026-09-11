@@ -370,15 +370,15 @@ payloads.updatePMInputs = function (operation) {
     document.getElementById('pm-args').hidden = !op.needsArgs
     document.getElementById('pm-otherData').hidden = !op.needsOtherData
 }
-payloads.runPMInputs = function () {
+payloads.runPMInputs = async function () {
     let op = defs.operations[document.getElementById('pm-operation').value]
     let payloadArg = {
         operation: document.getElementById('pm-operation').value
     }
     op.needsArgs ? payloadArg.args = document.getElementById('pm-args').value : undefined
     op.needsOtherData ? payloadArg.otherData = document.getElementById('pm-otherData').value : undefined
-    let p = new Payload(payloadArg)
-    p.execute()
+    let p = await new Payload(payloadArg)
+    payloads.updatePMHistory()
 }
 
 payloads.updatePMHistory = function () {

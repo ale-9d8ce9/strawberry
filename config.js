@@ -31,7 +31,8 @@ const defs = {
         error: 'EE',
         fatalError: 'FE',
         executing: 'E0',
-        downloadMode: 'D8'
+        downloadMode: 'D8',
+        sync: '45'
     },
     operations: {
         readMemory: {

@@ -15,6 +15,8 @@
 #define NUM_LEDS 64
 #define PROJECT_HEADER_SIZE 6
 
+#define NWaterParticles 23
+
 
 #define stsBootComplete   0xBD
 #define stsBooting        0xB1
@@ -25,6 +27,7 @@
 #define stsFatalError     0xFE
 #define stsExecuting      0xE0
 #define stsDownloadMode   0xD8
+#define stsSync           0x45
 
 #define opReadMemory    0x83
 #define opWriteMemory   0x87
@@ -43,6 +46,7 @@
 #define errNoMem2                         0x07
 #define errNoIMem                         0x08
 #define errInvalidXOR                     0x09
+#define errInvalidHeader                  0x0A
 
 
 #define usb Serial
@@ -72,9 +76,9 @@ Adafruit_LIS3DH lis = Adafruit_LIS3DH();
 uint8_t myrandom = 0;
 
 
-uint8_t waterColorR;
-uint8_t waterColorG;
-uint8_t waterColorB;
+uint8_t waterColorR = 128;
+uint8_t waterColorG = 128;
+uint8_t waterColorB = 128;
 
 uint8_t waterAmount = 23;
 
@@ -83,7 +87,7 @@ uint16_t framesDataStart = 0;
 uint8_t nFrames = 0;
 uint8_t frameDelay = 0;
 uint8_t maxBrightness = 0;
-bool autoBrightness = true;
+bool autoBrightness = false;
 uint8_t colorCompressionAlgorithm = 0;
 uint8_t animationRotation = 0;
 bool buttonSwitchMode = true;
@@ -129,10 +133,15 @@ void setup() {
   delay(50);
 
   // check to go in serial mode
-  if (usb.available() && usb.read() == stsDownloadMode) {
+  if (usb.available()) {
     fill_solid(leds, CRGB::Green);
     fled.show();
+    usb.write(stsSync);
+    while (usb.read() != stsSync) {
+      waitForSerial();
+    }
     usb.write(stsDownloadMode);
+    usb.write(stsSync);
     usb.write(stsReady);
     mode = serial;
     serialModeLoop();
@@ -143,6 +152,7 @@ void setup() {
   usb.write(stsBootComplete);
   usb.write(stsAllOk);
   usb.end();
+  fill_solid(leds, CRGB(waterColorR, waterColorG, waterColorB));
 }
 
 

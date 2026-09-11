@@ -18,7 +18,7 @@ class Project {
         this.settings = {
             frameDelay: 50,
             brightness: 12,
-            waterColor: 20,
+            waterColor: 73,
             waterAmount: 40,
             projectStart: 2,
             animationRotation: 0,

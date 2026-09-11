@@ -33,7 +33,6 @@ void initAnimation() {
 
 
 
-
 typedef void (*funcArray)(uint8_t);
 funcArray playFrame[] = {playFrame6b, playFrame8b};
 

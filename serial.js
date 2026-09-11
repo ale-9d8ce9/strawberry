@@ -176,10 +176,24 @@ serial.sendToDownloadMode = async function () {
         return false
     }
     await serial.resetDevice()
-    await delay(1380)
-    let response = await serial.send(defs.status.downloadMode, false)
 
-    let connected = response == defs.status.downloadMode + defs.status.ready
+    if (serial.currentlyReceiving !== '') {
+        serial.history.push({dir: 'received', content: serial.currentlyReceiving})
+        serial.currentlyReceiving = ''
+    }
+
+    let uint8arr = hexStringToUint8Array(defs.status.downloadMode)
+    for (let i = 0; i < 6400000; i++) {
+        await serial.write(uint8arr)
+        if (serial.currentlyReceiving.length == 2) {
+            break
+        }
+        await delay(25)
+        console.log(serial.currentlyReceiving.length)
+    }
+    let response = await serial.send(defs.status.sync, false)
+
+    let connected = response.endsWith(defs.status.downloadMode + defs.status.sync + defs.status.ready)
     connected ? serial.deviceState = deviceStates.connected : serial.deviceState = deviceStates.disconnected
     return connected
 }

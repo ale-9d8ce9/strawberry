@@ -7,7 +7,7 @@ struct particle {
   uint8_t x;
   uint8_t y;
 };
-struct particle waterParticles[23];
+struct particle waterParticles[NWaterParticles];
 uint8_t cells[8] = {0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff};
 
 
@@ -172,14 +172,14 @@ void moveParticleY(uint8_t i) {
     return;
   }
   
-  //if (x + gravityWeakDirectionX > 7) return; // apparently it's not needed (not having it makes water not stick to borders)
-
   // down side
   cell = (rowDown >> (x + gravityWeakDirectionX)) & 1;
   if (cell) {
     setCell1(x, y);
     y += gravityStrongDirectionY;
     x += gravityWeakDirectionX;
+    y = y & 0b111;
+    x = x & 0b111;
     setCell0(x, y);
     return;
   }
@@ -188,6 +188,8 @@ void moveParticleY(uint8_t i) {
     setCell1(x, y);
     y += gravityStrongDirectionY;
     x -= gravityWeakDirectionX;
+    y = y & 0b111;
+    x = x & 0b111;
     setCell0(x, y);
     return;
   }
@@ -198,6 +200,7 @@ void moveParticleY(uint8_t i) {
   if (cell) {
     setCell1(x, y);
     x += gravityWeakDirectionX;
+    x = x & 0b111;
     setCell0(x, y);
     return;
   }
@@ -206,6 +209,7 @@ void moveParticleY(uint8_t i) {
   if (cell) {
     setCell1(x, y);
     x -= gravityWeakDirectionX;
+    x = x & 0b111;
     setCell0(x, y);
     return;
   }
@@ -227,8 +231,6 @@ void moveParticleX(uint8_t i) {
     return;
   }
 
-  //if (y + gravityWeakDirectionY > 7) return; // apparently it's not needed (not having it makes water not stick to borders)
-
   // down side
   rowDown = cells[y + gravityWeakDirectionY];
   cell = (rowDown >> n) & 1;
@@ -236,6 +238,8 @@ void moveParticleX(uint8_t i) {
     setCell1(x, y);
     y += gravityWeakDirectionY;
     x += gravityStrongDirectionX;
+    y = y & 0b111;
+    x = x & 0b111;
     setCell0(x, y);
     return;
   } 
@@ -245,6 +249,8 @@ void moveParticleX(uint8_t i) {
     setCell1(x, y);
     y -= gravityWeakDirectionY;
     x += gravityStrongDirectionX;
+    y = y & 0b111;
+    x = x & 0b111;
     setCell0(x, y);
   }
 
@@ -254,6 +260,7 @@ void moveParticleX(uint8_t i) {
   if (cell) {
     setCell1(x, y);
     y += gravityWeakDirectionY;
+    y = y & 0b111;
     setCell0(x, y);
     return;
   } 
@@ -263,6 +270,7 @@ void moveParticleX(uint8_t i) {
   if (cell) {
     setCell1(x, y);
     y -= gravityWeakDirectionY;
+    y = y & 0b111;
     setCell0(x, y);
   }
 }
@@ -273,7 +281,7 @@ void moveParticleX(uint8_t i) {
 
 void simulate() {
   FastLED.clear();
-  for (uint8_t i = 0; i < waterAmount; i++) {
+  for (uint8_t i = 0; i < NWaterParticles; i++) {
     movecell(i);
     uint8_t led = ledIndexFromXY(waterParticles[i].x, waterParticles[i].y);
     leds[led] = CRGB(waterColorR, waterColorG, waterColorB);
@@ -285,7 +293,7 @@ void simulate() {
 
 
 void initWater() {
-  for (uint8_t i = 0; i < waterAmount; i++) {
+  for (uint8_t i = 0; i < NWaterParticles; i++) {
     uint8_t x = i % 8;
     uint8_t y = i / 8;
     waterParticles[i].x = x;
