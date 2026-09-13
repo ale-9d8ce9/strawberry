@@ -27,7 +27,7 @@ void initAnimation() {
   animationRotation = others & 0b11;          others = others >> 2;
   buttonSwitchMode = others & 1;
 
-  playAnimationOnBoot ? mode = animation : mode = waterSimulation;
+  playAnimationOnBoot ? mode = waterSimulation : mode = waterSimulation;
 }
 
 

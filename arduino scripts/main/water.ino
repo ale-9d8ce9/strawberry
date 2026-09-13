@@ -1,303 +1,210 @@
-
-int8_t gravityStrongDirectionX = 0;
-int8_t gravityStrongDirectionY = 0;
-int8_t gravityWeakDirectionY = 0;
-int8_t gravityWeakDirectionX = 0;
 struct particle {
   uint8_t x;
   uint8_t y;
 };
-struct particle waterParticles[NWaterParticles];
-uint8_t cells[8] = {0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff};
+struct particle wp[128];
+uint8_t cells[8][8];
+
+int8_t gx, gy, wx, wy;
+bool xIsStronger;
+
+CRGB levelColors[waterLevels];
 
 
+uint8_t rng = 0x69;
+inline bool random50() {
+  rng ^= rng << 3;
+  rng ^= rng >> 5;
+  rng ^= rng << 1;
+  return rng & 1;
+}
+
+
+inline bool tryMoveP(uint8_t& cx, uint8_t& cy, uint8_t nx, uint8_t ny) {
+  if (nx > 7 || ny > 7 || cells[nx][ny] == waterLevels) {
+    return false;
+  }
+
+  cells[cx][cy]--;
+  cells[nx][ny]++;
+  cx = nx;
+  cy = ny;
+  return true;
+}
+
+
+inline bool down(uint8_t& x, uint8_t& y) {
+  uint8_t xc = x + gx;
+  uint8_t yc = y + gy;
+
+  return tryMoveP(x, y, xc, yc);
+}
+
+
+
+inline bool downSideDiag(uint8_t& x, uint8_t& y) {
+  uint8_t xc = x + gx;
+  uint8_t yc = y + gy;
+
+  if (xIsStronger && tryMoveP(x, y, xc, y)) {
+    return true;
+  }
+
+  if (tryMoveP(x, y, x, yc)) {
+    return true;
+  }
+
+  if (!xIsStronger && tryMoveP(x, y, xc, y)) {
+    return true;
+  }
+
+  return false;
+}
+
+
+inline bool downSideStraight(uint8_t& x, uint8_t& y) {
+  if (xIsStronger) {
+    if (tryMoveP(x,y, x+gx, y+wx)) {
+      return true;
+    } else if (tryMoveP(x,y, x+gx, y-wx)) {
+      return true;
+    }
+  } else {
+    if (tryMoveP(x,y, x+wy, y+gy)) {
+      return true;
+    } else if (tryMoveP(x,y, x-wy, y+gy)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+
+inline bool downSide(uint8_t& x, uint8_t& y) {
+  if (gx == 0 || gy == 0) {
+    return downSideStraight(x, y);
+  } else {
+    return downSideDiag(x, y);
+  }
+}
+
+
+
+inline bool sideDiag(uint8_t& x, uint8_t& y) {
+  if (xIsStronger && tryMoveP(x, y, x+gx, y-gy)) {
+    return true;
+  }
+
+  if (tryMoveP(x, y, x-gx, y+gy)) {
+    return true;
+  }
+
+  if (!xIsStronger && tryMoveP(x, y, x+gx, y-gy)) {
+    return true;
+  }
+
+  return false;
+}
+
+
+inline bool sideStraight(uint8_t& x, uint8_t& y) {
+  if (xIsStronger) {
+    if (tryMoveP(x,y, x, y+wy)) {
+      return true;
+    } else if (random50() && tryMoveP(x,y, x, y-wy)) {
+      return true;
+    }
+  } else {
+    if (tryMoveP(x,y, x+wx, y)) {
+      return true;
+    } else if (random50() && tryMoveP(x,y, x-wx, y)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+
+inline bool side(uint8_t& x, uint8_t& y) {
+  if (gx == 0 || gy == 0) {
+    return sideStraight(x, y);
+  } else {
+    return sideDiag(x, y);
+  }
+}
+
+
+inline void tickParticle(uint8_t i) {
+  uint8_t& x = wp[i].x;
+  uint8_t& y = wp[i].y;
+
+  if (down(x, y)) {
+    return;
+  }
+  if (downSide(x, y)) {
+    return;
+  }
+  if (side(x, y)) return;
+}
 
 
 void tickWaterSimulation() {
-  sensors_event_t event; 
-  lis.getEvent(&event);
-  
-  float x = event.acceleration.x;
-  float y = event.acceleration.y;
-  elaborateGravityDirection(x, y);
-  updateMyRandom(x,y);
+  readG();
 
-  simulate();
-  //uint8_t d = x + y;
-  //d = 50 - d*2;
-  //delay(d); 
-}
+  for (uint8_t i = 0; i < waterAmount; i++) {
+    tickParticle(i);
+  }
 
-
-
-
-
-void elaborateGravityDirection(float x, float y) {
-  gravityStrongDirectionX = (x > 1) - (x < -1);
-  gravityStrongDirectionY = (y > 1) - (y < -1);
-
-  if (fabs(y) > fabs(x)) {
-    gravityWeakDirectionX = (x < 0) ? -1 : 1;
-    gravityWeakDirectionY = 0;
-    gravityStrongDirectionY = (y > 1) - (y < -1);
-
-    if (fabs(fabs(y) - fabs(x)) < 3) {
-      gravityStrongDirectionX = (x > 1) - (x < -1);
-    } else {
-      gravityStrongDirectionX = 0;
-    }
-
-  } else {
-    gravityWeakDirectionY = (y < 0) ? -1 : 1;
-    gravityWeakDirectionX = 0;
-    gravityStrongDirectionX = (x > 1) - (x < -1);
-
-    if (fabs(fabs(y) - fabs(x)) < 3) {
-      gravityStrongDirectionY = (y > 1) - (y < -1);
-    } else {
-      gravityStrongDirectionY = 0;
+  fled.clear();
+  for (uint8_t x = 0; x < 8; x++) {
+    for (uint8_t y = 0; y < 8; y++) {
+      uint8_t level = cells[x][y];
+      if (level != 0) {
+        uint8_t led = ledIndexFromXY(x, y);
+        leds[led] = levelColors[level-1];
+      }
     }
   }
-
+  fled.show();
+  return;
 }
-
-
-void movecell(uint8_t i) {
-  if (gravityStrongDirectionY == 0 && gravityStrongDirectionX == 0) return;
-
-  if (gravityStrongDirectionY != 0 && gravityStrongDirectionX != 0) {
-    moveParticle45(i);
-    return;
-  }
-
-  if (gravityStrongDirectionX == 0) {
-    moveParticleY(i);
-  } else {
-    moveParticleX(i);
-  }
-}
-
-
-
-void setCell0(uint8_t x, uint8_t y) {
-  uint8_t mask = 255 - (1 << x);
-  cells[y] &= mask;
-}
-void setCell1(uint8_t x, uint8_t y) {
-  cells[y] |= 1 << x;
-}
-
-
-
-void moveParticle45(uint8_t i) {
-  uint8_t& x = waterParticles[i].x;
-  uint8_t& y = waterParticles[i].y;
-
-  uint8_t YplusG = y + gravityStrongDirectionY;
-  uint8_t XplusG = x + gravityStrongDirectionX;
-  if (YplusG > 7) YplusG = y;
-  if (XplusG > 7) XplusG = x;
-  
-  uint8_t rowDown = cells[YplusG];
-
-  bool cell = (rowDown >> XplusG) & 1;
-  if (cell) { // directly down
-    setCell1(x, y);
-    y = YplusG;
-    x = XplusG;
-    setCell0(XplusG, YplusG);
-    return;
-  }
-
-  cell = (rowDown >> x) & 1; // down side 1
-  if (cell) {
-    setCell1(x, y);
-    y = YplusG;
-    setCell0(x, YplusG);
-    return;
-  }
-
-  rowDown = cells[y]; // down side 2
-  cell = (rowDown >> XplusG) & 1;
-  if (cell) {
-    setCell1(x, y);
-    x = XplusG;
-    setCell0(XplusG, y);
-    return;
-  }
-
-  if (((myrandom^i) & 3) != 0) return;
-
-  uint8_t XminusG = x - gravityStrongDirectionX;
-  uint8_t YminusG = y - gravityStrongDirectionY;
-  if (XminusG > 7) XminusG = x;
-  if (YminusG > 7) YminusG = y;
-
-  rowDown = cells[YplusG];
-  cell = (rowDown >> XminusG) & 1; // side 1
-  if (cell && (y != 0 && y != 7)) {
-    setCell1(x, y);
-    x = XminusG;
-    y = YplusG;
-    setCell0(XminusG, YplusG);
-    return;
-  }
-
-  rowDown = cells[YminusG];
-  cell = (rowDown >> XplusG) & 1; // side 2
-  if (cell && (x != 0 && x != 7)) {
-    setCell1(x, y);
-    y = YminusG;
-    x = XplusG;
-    setCell0(XplusG, YminusG);
-    return;
-  }
-}
-
-
-
-void moveParticleY(uint8_t i) {
-  uint8_t& x = waterParticles[i].x;
-  uint8_t& y = waterParticles[i].y;
-
-  uint8_t n = y + gravityStrongDirectionY;
-  if (n > 7) return;
-  uint8_t rowDown = cells[n];
-
-  bool cell = (rowDown >> x) & 1; // directly down
-  if (cell) {
-    setCell1(x, y);
-    y += gravityStrongDirectionY;
-    setCell0(x, y);
-    return;
-  }
-  
-  // down side
-  cell = (rowDown >> (x + gravityWeakDirectionX)) & 1;
-  if (cell) {
-    setCell1(x, y);
-    y += gravityStrongDirectionY;
-    x += gravityWeakDirectionX;
-    y = y & 0b111;
-    x = x & 0b111;
-    setCell0(x, y);
-    return;
-  }
-  cell = (rowDown >> (x - gravityWeakDirectionX)) & 1;
-  if (cell) {
-    setCell1(x, y);
-    y += gravityStrongDirectionY;
-    x -= gravityWeakDirectionX;
-    y = y & 0b111;
-    x = x & 0b111;
-    setCell0(x, y);
-    return;
-  }
-  
-  // side
-  rowDown = cells[y];
-  cell = (rowDown >> (x + gravityWeakDirectionX)) & 1;
-  if (cell) {
-    setCell1(x, y);
-    x += gravityWeakDirectionX;
-    x = x & 0b111;
-    setCell0(x, y);
-    return;
-  }
-  if (((myrandom^i) & 7) != 0) return;
-  cell = (rowDown >> (x - gravityWeakDirectionX)) & 1;
-  if (cell) {
-    setCell1(x, y);
-    x -= gravityWeakDirectionX;
-    x = x & 0b111;
-    setCell0(x, y);
-    return;
-  }
-}
-
-void moveParticleX(uint8_t i) {
-  uint8_t& x = waterParticles[i].x;
-  uint8_t& y = waterParticles[i].y;
-
-  uint8_t n = x + gravityStrongDirectionX;
-  if (n > 7) return;
-  uint8_t rowDown = cells[y];
-
-  bool cell = (rowDown >> n) & 1; // directly down
-  if (cell) {
-    setCell1(x, y);
-    x += gravityStrongDirectionX;
-    setCell0(x, y);
-    return;
-  }
-
-  // down side
-  rowDown = cells[y + gravityWeakDirectionY];
-  cell = (rowDown >> n) & 1;
-  if (cell) {
-    setCell1(x, y);
-    y += gravityWeakDirectionY;
-    x += gravityStrongDirectionX;
-    y = y & 0b111;
-    x = x & 0b111;
-    setCell0(x, y);
-    return;
-  } 
-  rowDown = cells[y - gravityWeakDirectionY];
-  cell = (rowDown >> n) & 1;
-  if (cell) {
-    setCell1(x, y);
-    y -= gravityWeakDirectionY;
-    x += gravityStrongDirectionX;
-    y = y & 0b111;
-    x = x & 0b111;
-    setCell0(x, y);
-  }
-
-  // side
-  rowDown = cells[y + gravityWeakDirectionY];
-  cell = (rowDown >> x) & 1;
-  if (cell) {
-    setCell1(x, y);
-    y += gravityWeakDirectionY;
-    y = y & 0b111;
-    setCell0(x, y);
-    return;
-  } 
-  if (((myrandom^i) & 7) != 0) return;
-  rowDown = cells[y - gravityWeakDirectionY];
-  cell = (rowDown >> x) & 1;
-  if (cell) {
-    setCell1(x, y);
-    y -= gravityWeakDirectionY;
-    y = y & 0b111;
-    setCell0(x, y);
-  }
-}
-
-
-
-
-
-void simulate() {
-  FastLED.clear();
-  for (uint8_t i = 0; i < NWaterParticles; i++) {
-    movecell(i);
-    uint8_t led = ledIndexFromXY(waterParticles[i].x, waterParticles[i].y);
-    leds[led] = CRGB(waterColorR, waterColorG, waterColorB);
-  }
-  FastLED.show();
-}
-
-
 
 
 void initWater() {
-  for (uint8_t i = 0; i < NWaterParticles; i++) {
+  for (uint8_t i = 0; i < waterLevels; i++) {
+    levelColors[waterLevels - i -1] = CRGB(waterColorR >> i, waterColorG >> i, waterColorB >> i);
+  }
+
+  for (uint8_t x = 0; x < 8; x++) {
+    for (uint8_t y = 0; y < 8; y++) {
+      cells[x][y] = 0;
+    }
+  }
+
+  for (uint8_t i = 0; i < waterAmount; i++) {
     uint8_t x = i % 8;
     uint8_t y = i / 8;
-    waterParticles[i].x = x;
-    waterParticles[i].y = y;
-    setCell0(x, y);
+    wp[i].x = x;
+    wp[i].y = y;
+    cells[x][y] = 1;
   }
 }
+
+
+void readG() {
+  sensors_event_t event; 
+  lis.getEvent(&event);
+  float ax = event.acceleration.x;
+  float ay = event.acceleration.y;
+  gx = (ax > 1) - (ax < -1);
+  gy = (ay > 1) - (ay < -1);
+  wx = ax > 0 ? 1 : -1 ;
+  wy = ay > 0 ? 1 : -1 ;
+  xIsStronger = fabs(ax) > fabs(ay);
+}
+
+

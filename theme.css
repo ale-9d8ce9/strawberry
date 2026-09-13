@@ -1,6 +1,6 @@
 :root {
     color-scheme: light dark;
-    --clr-base: oklch(0.72 0.09 277.96);
+    --clr-base: oklch(64.16% 0.07677 157.13);
 
     --clr: oklch(from var(--clr-base) min(0.85, l) min(0.2, c) h);
     --bg0: oklch(from var(--clr) 0.20 min(0.04, c) h);

@@ -14,8 +14,7 @@
 #define LED_PIN 9
 #define NUM_LEDS 64
 #define PROJECT_HEADER_SIZE 6
-
-#define NWaterParticles 23
+#define waterLevels 3
 
 
 #define stsBootComplete   0xBD
@@ -73,14 +72,12 @@ CRGB leds[NUM_LEDS];
 Adafruit_LIS3DH lis = Adafruit_LIS3DH();
 
 
-uint8_t myrandom = 0;
-
 
 uint8_t waterColorR = 128;
 uint8_t waterColorG = 128;
 uint8_t waterColorB = 128;
 
-uint8_t waterAmount = 23;
+uint8_t waterAmount = 56;
 
 
 uint16_t framesDataStart = 0;
@@ -100,7 +97,7 @@ uint8_t previousBtn = digitalRead(BUTTON_PIN);
 
 
 void setup() {
-  usb.begin(SERIAL_SPEED, SERIAL_CONF);
+  usb.begin(SERIAL_SPEED);
   usb.write(stsBooting);
 
   mem1.begin();
@@ -113,7 +110,7 @@ void setup() {
   // initialize leds
   fled.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   setMaxBrightness();
-  fled.setBrightness(10);
+  fled.setBrightness(20);
   fled.show();
   // precharge NEVER CHANGE THIS CODE
   digitalWrite(3, HIGH);
@@ -128,8 +125,8 @@ void setup() {
   }
   lis.setRange(LIS3DH_RANGE_2_G);
 
-  initWater();
   initAnimation();
+  initWater();
   delay(50);
 
   // check to go in serial mode
@@ -151,7 +148,7 @@ void setup() {
   digitalWrite(GREEN_LED_PIN, 0);
   usb.write(stsBootComplete);
   usb.write(stsAllOk);
-  usb.end();
+  //usb.end();
   fill_solid(leds, CRGB(waterColorR, waterColorG, waterColorB));
 }
 
@@ -359,10 +356,6 @@ uint8_t getLSB(float f) {
     uint32_t bits;
     memcpy(&bits, &f, sizeof(bits));
     return (uint8_t)(bits & 0xFF);
-}
-void updateMyRandom(float f1, float f2) {
-  myrandom ^= getLSB(f1);
-  myrandom ^= getLSB(f2);
 }
 
 
