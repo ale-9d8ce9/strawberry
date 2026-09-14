@@ -1,0 +1,36 @@
+warning {
+    position: fixed;
+    inset: 0;
+    background-color: #0000009f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    overflow-y: auto;
+
+    opacity: 0;
+    scale: .8;
+    pointer-events: none;
+    transition: var(--transition-normal);
+
+    img {
+        max-height: 4cm;
+        min-height: 2cm;
+    }
+
+    text {
+        max-width: 10cm;
+    }
+
+    button {
+        width: min-content;
+        padding: .5rem;
+    }
+
+    &.show {
+        opacity: 1;
+        scale: 1;
+        pointer-events: all;
+    }
+    
+}

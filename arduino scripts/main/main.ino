@@ -6,6 +6,12 @@
 #include <Adafruit_Sensor.h>
 
 
+#define maxPower 300 // ma
+#define maxSafeBrightness 0x80
+// #define maxSafeBrightness 0xFF
+
+#define FW_VERSION 0x01
+
 #define SERIAL_SPEED 115200
 #define SERIAL_CONF SERIAL_8N1
 #define BUTTON_PIN 7
@@ -30,6 +36,7 @@
 
 #define opReadMemory    0x83
 #define opWriteMemory   0x87
+#define opGetFwVersion  0x10
 #define opSetMode       0x29
 #define opSetBrightness 0x2D
 #define opShowFrame6b   0x04
@@ -77,7 +84,7 @@ uint8_t waterColorR = 128;
 uint8_t waterColorG = 128;
 uint8_t waterColorB = 128;
 
-uint8_t waterAmount = 56;
+uint8_t waterAmount = 60;
 
 
 uint16_t framesDataStart = 0;
@@ -110,7 +117,7 @@ void setup() {
   // initialize leds
   fled.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   setMaxBrightness();
-  fled.setBrightness(20);
+  fled.clear();  
   fled.show();
   // precharge NEVER CHANGE THIS CODE
   digitalWrite(3, HIGH);
@@ -131,8 +138,8 @@ void setup() {
 
   // check to go in serial mode
   if (usb.available()) {
-    fill_solid(leds, CRGB::Green);
-    fled.show();
+    const uint8_t dwnlModeImg[48] = {0x44,0x44,0x44,0x15,0x44,0x04,0x44,0x44,0x44,0x15,0x44,0x04,0x04,0x04,0x00,0x00,0x40,0x04,0x04,0x00,0x00,0x00,0x40,0x00,0x04,0x44,0x3F,0x04,0x7F,0x04,0x04,0x44,0x3F,0x04,0x7F,0x04,0x04,0x44,0x04,0x04,0x44,0x04,0x04,0x44,0x04,0x04,0x44,0x04};
+    showFrame6b(dwnlModeImg);
     usb.write(stsSync);
     while (usb.read() != stsSync) {
       waitForSerial();
@@ -148,7 +155,7 @@ void setup() {
   digitalWrite(GREEN_LED_PIN, 0);
   usb.write(stsBootComplete);
   usb.write(stsAllOk);
-  //usb.end();
+  usb.end();
   fill_solid(leds, CRGB(waterColorR, waterColorG, waterColorB));
 }
 
@@ -206,6 +213,9 @@ void executePayload() {
   switch (op) {
     case opSetMode:
       setMode();
+      break;
+    case opGetFwVersion:
+      getFwVersion();
       break;
     case opSetBrightness:
       setBrightness();
@@ -286,6 +296,18 @@ void showFrame8bSerial() {
 
 
 
+void getFwVersion() {
+  usb.write(stsExecuting);
+  usb.write(op);
+  usb.write(0);
+  usb.write(2);
+  usb.write(0);
+  usb.write(FW_VERSION);
+  closeUsbMsgAllOk();
+}
+
+
+
 void setMode() {
   uint8_t newMode = arg1;
   if (newMode > 2) {
@@ -294,9 +316,11 @@ void setMode() {
   }
   usb.write(stsExecuting);
   usb.write(op);
-  mode = newMode;
+  usb.write(0);
+  usb.write(0);
   initAnimation();
   initWater();
+  mode = newMode;
   closeUsbMsgAllOk();
 }
 
@@ -304,12 +328,14 @@ void setMode() {
 void setBrightness() {
   usb.write(stsExecuting);
   usb.write(op);
+  usb.write(0);
+  usb.write(0);
   if (arg1 < 4) {
     error(errInvalidArgs);
     return;
   }
   maxBrightness = arg1;
-  fled.setBrightness(maxBrightness);
+  setSafeBrightness();
   fled.show();
   closeUsbMsgAllOk();
 }
@@ -323,15 +349,22 @@ void setBrightness() {
 
 
 
+void setSafeBrightness() {
+  if (maxBrightness > maxSafeBrightness) maxBrightness = maxSafeBrightness;
+  fled.setBrightness(maxBrightness);
+  fled.show();
+}
+
+
 
 void setMaxBrightness() {
   uint16_t a0 = analogRead(0);
   uint16_t a1 = analogRead(1);
   uint16_t power = a0 > a1 ? a0 : a1;
   if (power > 160) {
-    fled.setMaxPowerInVoltsAndMilliamps(5, 400);
+    fled.setMaxPowerInVoltsAndMilliamps(5, maxPower);
   } else {
-    fled.setMaxPowerInVoltsAndMilliamps(5, 400);
+    fled.setMaxPowerInVoltsAndMilliamps(5, maxPower);
   }
 }
 
@@ -345,17 +378,9 @@ void waitForSerial() {
 
 
 
-void closeUsbMsgAllOk() {
+inline void closeUsbMsgAllOk() {
   usb.write(stsAllOk);
   usb.write(stsReady);
-}
-
-
-
-uint8_t getLSB(float f) {
-    uint32_t bits;
-    memcpy(&bits, &f, sizeof(bits));
-    return (uint8_t)(bits & 0xFF);
 }
 
 

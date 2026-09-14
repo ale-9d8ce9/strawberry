@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="dev.css">
     <link rel="stylesheet" href="controls.css">
     <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="warning.css">
     <link rel="stylesheet" href="error.css">
     <link rel="stylesheet" href="theme.css">
 </head>
@@ -37,13 +38,11 @@
             
             <button onclick="settings.toggle()">settins</button>
             <buttonGroup>
+                <div class="iconContainer" data-name="new" onclick="document.getElementById('newProjectPopup').classList.add('show')"><img class="icon" src="icons/new-project.svg"></div>
                 <div class="iconContainer" data-name="save" onclick="project.export()"><img class="icon" src="icons/save.svg"></div>
                 <div class="iconContainer" data-name="open" onclick="leds.import()"><img class="icon" src="icons/open.svg"></div>
-                <div class="iconContainer" data-name="preview" onclick="project.preview(1, 0)"><img class="icon" src="icons/preview.svg"></div>
-            </buttonGroup>
 
-            <buttonGroup>
-                <div id="devTools" data-name="dev tools" class="iconContainer">
+                <div id="devTools" data-name="dev tools" class="iconContainer needsSerial">
                     <img src="icons/dev.svg" class="icon">
                     <div>
                         <div class="iconContainer" onclick="document.querySelector('payloadMonitor').classList.toggle('show')" data-name="payload monitor">
@@ -54,9 +53,12 @@
                         </div>
                     </div>
                 </div>
+            </buttonGroup>
 
-                <button onclick="serial.connect()" id="connectBtn">connect <img class="icon" src="icons/cable.svg"></button>
-                <div class="iconContainer" data-name="flash" id="flash" onclick="project.flash()"><img class="icon" src="icons/flash.svg"></div>
+            <buttonGroup>
+                <button class="needsSerial" onclick="serial.connect()" id="connectBtn"><span id="connectBtnText">connect</span> <img class="icon" src="icons/cable.svg"></button>
+                <div class="iconContainer needsSerial" data-name="preview" onclick="project.preview(1, 0)"><img class="icon" src="icons/preview.svg"></div>
+                <div class="iconContainer needsSerial" data-name="flash" id="flash" onclick="project.flash()"><img class="icon" src="icons/flash.svg"></div>
             </buttonGroup>
         </controls>
 
@@ -79,6 +81,18 @@
             <div onclick="project.addFrame()"><img src="icons/new-empty.svg"></div>
         </div>
 
+        <div id="newProjectPopup" class="show">
+            <smallTitle>format</smallTitle>
+            <div onclick="leds.newProject('8b')">
+                8 bit colors<br>
+                up to 79 frames, 256 colors
+            </div>
+            <div onclick="leds.newProject('6b')">
+                6 bit colors<br>
+                up to 104 frames, 64 colors
+            </div>
+        </div>
+
         <settingsContainer>
             <settings>
                 <button onclick="settings.toggle()">exit</button>
@@ -96,7 +110,7 @@
                     <description>
                         max brightness (could be lower depending on the power source)
                     </description>
-                    <input id="setting-maxBrightness" type="range" min="0" max="250" value="10" onchange="project.settings.brightness = parseInt(this.value)">
+                    <input id="setting-maxBrightness" type="range" min="0" max="250" value="40" onchange="project.settings.brightness = parseInt(this.value)">
                 </setting>
                 <smallTitle>mode byte</smallTitle>
                 <setting>
@@ -105,18 +119,18 @@
                     </description>
                     <input id="setting-defaultModeBooting" type="checkbox" onchange="project.settings.playAnimationOnBoot = this.checked">
                 </setting>
-                <setting>
+                <!-- <setting>
                     <description>
                         auto brightness
                     </description>
                     <input id="setting-autoBrightness" type="checkbox" onchange="project.settings.autoBrightness = this.checked">
-                </setting>
-                <setting>
+                </setting> -->
+                <!-- <setting>
                     <description>
                         animation rotation
                     </description>
                     <input id="setting-animationRotation" type="range" min="-1" value="0" max="2" onchange="project.settings.animationRotation = parseInt(this.value)">
-                </setting>
+                </setting> -->
                 <setting>
                     <description>
                         use the button to switch between water and animation
@@ -143,6 +157,21 @@
         </div>
     </flashingStatus>
 
+    <warning id="isChromiumWarn">
+        <img src="icons/warning.svg">
+        <text>
+            this app is specifically optimized for the Chromium rendering engine. <br> While compatibility with other browsers is maintained, using non-Chromium browsers (e.g., Safari, Firefox, iOS, iPadOS) may cause minor glitches.
+        </text>
+        <button onclick="document.getElementById('isChromiumWarn').classList.remove('show')">dismiss</button>
+    </warning>
+
+    <warning id="serialWarn">
+        <img src="icons/warning.svg">
+        <text>
+            your browser / device doesn't support the necessary apis to connect to usb devices
+        </text>
+        <button onclick="document.getElementById('serialWarn').classList.remove('show')">ok</button>
+    </warning>
 
     <hexMonitor class="window" style="top:100px;left:200px">
         <div class="window-handle">

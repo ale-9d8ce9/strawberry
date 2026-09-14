@@ -11,6 +11,7 @@
     left: calc(calc(100% - var(--controls-width) - var(--frames-width)) / 2 + var(--frames-width));
     translate: -50% -50%;
     background-color: var(--page-bg);
+    touch-action: none;
 
     &.transitionColors led {
         transition:
@@ -20,6 +21,9 @@
     &:not(.transitionColors) led {
         transition-delay: var(--delay), 0s !important;
     }
+}
+#leds * {
+    touch-action: none;
 }
 
 body.flashing #leds {

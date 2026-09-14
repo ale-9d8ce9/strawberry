@@ -60,3 +60,13 @@ save data
     - B leds compression mode
 
     ABB
+
+todo ----------------
+max frames
+remove settings button
+fix empty save name
+a bit of polish
+click outside to close add frame popup
+move frames on mobile
+fix offscreen ui on mobile
+update 8b colors

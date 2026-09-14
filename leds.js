@@ -11,9 +11,9 @@ class Project {
         this.backgroundColor = this.colorConfig.defaultColor
         this.nextFrameID = 0
 
-        this.selectedColor = 0
+        this.selectedColor = this.colorConfig.defaultSelectedColor
         this.recentColors = [this.selectedColor]
-        this.selectColor(0)
+        this.selectColor(this.colorConfig.defaultSelectedColor)
 
         this.settings = {
             frameDelay: 50,
@@ -211,7 +211,8 @@ class Project {
 
         document.getElementById('recentColors').addEventListener('click', (e) => {
             const pos = diviteTouchTargetInGrid(e, 8, 4)
-            let i = pos.y * 4 + pos.x
+            let i = pos.y * 8 + pos.x
+            if (i >= project.recentColors.length) return
             project.selectColor(project.recentColors[i])
         })
     }
@@ -501,7 +502,7 @@ class Frame {
         let pixels = []
         for (let row = 0; row < this.leds.length; row++) {
             for (let col = 0; col < this.leds[row].length; col++) {
-                pixels[ledIndexFromXY(col, row)] = this.leds[row][col] << 2
+                pixels[ledIndexFromXY(col, row)] = this.leds[row][col]
             }
         }
         for (let i = 0; i < pixels.length; i+=4) {
@@ -514,13 +515,12 @@ class Frame {
             let d = pixels[i+3]
 
             b0 = a
-            b0 |= (b & 0b00001100) >> 2
+            b1 = b
+            b2 = c
 
-            b1 = b & 0b11110000
-            b1 |= (c & 0b00111100) >> 2
-
-            b2 = d >> 2
-            b2 |= c & 0b11000000
+            b0 |= (d & 0b00110000) << 2
+            b1 |= (d & 0b00001100) << 4
+            b2 |= (d & 0b00000011) << 6
 
             data += intToHex(b0)
             data += intToHex(b1)
@@ -599,11 +599,24 @@ let leds = {}
 let project = null
 
 
+
+leds.newProject = function (dataType) {
+    document.getElementById('frames').innerHTML = ''
+    project = new Project({
+        dataType: dataType
+    })
+    project.addFrame()
+    document.getElementById('newProjectPopup').classList.remove('show')
+}
+
+
+
 leds.import = async function () {
     function openFile() {
         return new Promise((resolve, reject) => {
             const input = document.createElement('input')
             input.type = 'file'
+            input.accept = '.leds, .json'
 
             input.onchange = () => {
                 const file = input.files[0]
@@ -670,8 +683,4 @@ leds.init = function () {
 
     document.getElementById('leds').innerHTML = html
 
-    project = new Project({
-        dataType: '8b'
-    })
-    project.addFrame()
 }

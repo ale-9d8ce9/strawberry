@@ -6,7 +6,6 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
 
 
 function setupShortcuts() {
-
     document.querySelector('body').addEventListener('keydown', (e) => {
         function isTyping(e) {
             const tag = e.target.tagName;
@@ -52,7 +51,21 @@ document.getElementById('leds').addEventListener('contextmenu', (e) => {
     e.preventDefault()
 })
 
+document.getElementById('leds').addEventListener('touchstart', (e) => {
+    e.preventDefault()
+    let pos = getTouchPos(e)
+    pos.x = clamp(0, pos.x, 7)
+    pos.y = clamp(0, pos.y, 7)
+    project.paint(pos)
+}, { passive: false })
 
+document.getElementById('leds').addEventListener('touchmove', (e) => {
+    e.preventDefault()
+    let pos = getTouchPos(e)
+    pos.x = clamp(0, pos.x, 7)
+    pos.y = clamp(0, pos.y, 7)
+    project.paint(pos)
+}, { passive: false })
 
 
 

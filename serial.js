@@ -145,7 +145,8 @@ navigator.serial?.addEventListener('disconnect', (e) => {
     if (e.target === serial.port) {
         console.log('device unplugged')
         serial.reading = false
-        serial.deviceState = deviceStates.disconnected
+        serial.deviceState = deviceStates.none
+        serial.updateButtons()
         serial.port = null
     }
     serial.updateButtons()
@@ -195,6 +196,22 @@ serial.sendToDownloadMode = async function () {
 
     let connected = response.endsWith(defs.status.downloadMode + defs.status.sync + defs.status.ready)
     connected ? serial.deviceState = deviceStates.connected : serial.deviceState = deviceStates.disconnected
+
+    // update fw popup logic
+    let fwVersion = await payloads.getFwVersion()
+    if (!fwVersion.ok) {
+        connected = false
+        serial.deviceState = deviceStates.none
+
+    } else if (hexToInt(fwVersion.response.join('')) < config.minFwVersion) {
+        await serial.resetDevice()
+        alert('you need to update the firmware on your board')
+        connected = false
+        serial.deviceState = deviceStates.none
+
+    }
+
+    serial.updateButtons()
     return connected
 }
 
@@ -226,4 +243,24 @@ serial.updateSerialMonitor = function () {
 
 serial.updateButtons = function () {
     document.getElementById('connectBtn').disabled = serial.deviceState == deviceStates.disconnected
+    let state = ''
+    switch (serial.deviceState) {
+        case deviceStates.disconnected:
+            state = 'connected'
+            break;
+        case deviceStates.connected:
+            state = 'connected'
+            break;
+        case deviceStates.busy:
+            state = 'busy'
+            break;
+        case deviceStates.none:
+            state = 'connect'
+            break;
+    
+        default:
+            break;
+    }
+    document.getElementById('connectBtnText').innerText = state
+    document.getElementById('connectBtn').disabled = state != 'connect'
 }

@@ -3,6 +3,7 @@ controls {
     position: fixed;
     right: 0;
     transition: var(--transition-normal);
+    overflow-y: auto;
 }
 
 body.flashing controls, page.showSettings controls {
@@ -15,6 +16,12 @@ body.flashing controls, page.showSettings controls {
     height: 1rem;
     width: 100%;
     
+}
+
+
+body.noSerial .needsSerial {
+    pointer-events: none;
+    opacity: .5;
 }
 
 

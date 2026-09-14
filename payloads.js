@@ -38,18 +38,11 @@ class Payload {
 
 
     async checkHeader(response) {
-        if (response.length < 2 || response.length != 4) {
-            return {
-                ok: false,
-                withError: false,
-                message: 'header too short'
-            }
-        }
-        
         let responseStatus = response[0]
         let responseCode = response[1]
         let l = response.length
 
+        // all right
         if (responseCode == defs.operations[this.op].code && responseStatus == defs.status.executing) {
             return {
                 ok: true,
@@ -58,6 +51,7 @@ class Payload {
             }
         }
 
+        // unknown
         if (responseStatus != defs.status.executing && responseStatus != defs.status.error && responseStatus != defs.status.fatalError) {
             await serial.resetDevice()
             return {
@@ -69,10 +63,9 @@ class Payload {
             }
         }
 
+        // error
         if (responseStatus == defs.status.error || responseStatus == defs.status.fatalError) {
-            if (responseStatus == defs.status.fatalError) {
-                await serial.reconnect()
-            }
+            await serial.sendToDownloadMode()
             return {
                 ok: false,
                 response: response,
@@ -83,10 +76,11 @@ class Payload {
                     code: responseCode,
                     message: defs.errors.get(responseCode)
                 },
-                message: 'handled error'
+                message: 'board error: '+defs.errors.get(responseCode)
             }
         }
 
+        // wrong operation
         if (responseCode != defs.operations[this.op].code) {
             await serial.resetDevice()
             return {
@@ -94,7 +88,7 @@ class Payload {
                 response: response,
                 withError: false,
                 reset: true,
-                message: 'operation executed is different from payload'
+                message: 'operation executed is different from requested'
             }
         }
 
@@ -141,7 +135,7 @@ class Payload {
                     code: responseCode,
                     message: defs.errors.get(responseCode)
                 },
-                message: 'handled error'
+                message: 'board error: '+defs.errors.get(responseCode)
             })
         }
 
@@ -160,9 +154,6 @@ class Payload {
             payload.history.result = result
             payloads.history.push(payload.history)
 
-            if (!result.ok) {
-                alert('error: '+JSON.stringify(result.message))
-            }
             return new playloadResult(result)
         }
 
@@ -172,6 +163,7 @@ class Payload {
             return exit({
                 ok: false,
                 message: 'no device connected',
+                continue: false,
                 withError: false
             }, this)
         }
@@ -180,6 +172,7 @@ class Payload {
             return exit({
                 ok: false,
                 message: 'invalid payload, aborted (check console for details)',
+                continue: false,
                 withError: false
             }, this)
         }
@@ -206,6 +199,7 @@ class Payload {
                 return exit({
                     ok: false,
                     withError: false,
+                    continue: false,
                     message: 'could not go to download mode'
                 }, this)
             }
@@ -272,6 +266,7 @@ class playloadResult {
             return
         }
         this.ok = args.ok
+
         
         if (this.ok) {
             this.response = args.response
@@ -284,7 +279,12 @@ class playloadResult {
             if (this.withError) {
                 this.error = args.error
             }
-            this.continue = confirm('error while executing: '+this.message)
+            if (keys.includes('continue') && args.continue === false) {
+                alert('Error while executing:\n'+this.message)
+                this.continue = false
+            } else {
+                this.continue = confirm('Error while executing:\n'+this.message+' \n\nContinue?')
+            }
         }
     }
 }
@@ -334,6 +334,11 @@ payloads.writeMemory = async function (start, offset, otherData) {
     })
 }
 
+payloads.getFwVersion = async function () {
+    return await new Payload({
+        operation: 'getFwVersion'
+    })
+}
 payloads.setMode = async function (mode) {
     let s = hexToInt(mode) < 3 ? mode : '00'
 

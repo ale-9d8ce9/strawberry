@@ -167,7 +167,51 @@ function updateFlashingStatus(sts) {
 
 
 
+function getTouchPos(e) {
+    const touch = e.touches[0] || e.changedTouches[0]
+    const leds = document.getElementById('leds')
+
+    const fakeEvent = {
+        x: touch.clientX,
+        y: touch.clientY,
+    }
+
+    return diviteTouchTargetInGrid(fakeEvent, 8, 8, leds)
+}
+
+
+
+function isChromium() {
+    let esmg = ""
+    try { null.x } catch (e) { emsg = e.message }
+    return (!!window.chrome) && emsg === "Cannot read properties of null (reading 'x')"
+}
+
+function hasSerial() {
+    return !!navigator.serial
+}
+
+
+function clamp(min, val, max) {
+    let r = val
+    val < min ? r = min : null
+    val > max ? r = max : null
+    return r
+}
+
+
+
 async function start() {
+    if (isChromium()) {
+        document.querySelector('body').classList.add('isChromium')
+    } else {
+        document.getElementById('isChromiumWarn').classList.add('show')
+    }
+    if (!hasSerial()) {
+        document.querySelector('body').classList.add('noSerial')
+        document.getElementById('serialWarn').classList.add('show')
+    }
+
     if (config.useShortcuts) {
         setupShortcuts()
     }
