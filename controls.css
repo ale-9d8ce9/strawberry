@@ -19,7 +19,7 @@ body.flashing controls, page.showSettings controls {
 }
 
 
-body.noSerial .needsSerial {
+body.noSerial .needsSerial, .disabled {
     pointer-events: none;
     opacity: .5;
 }

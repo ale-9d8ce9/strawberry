@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>strawberry</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="font.css">
     <link rel="stylesheet" href="frames.css">
     <link rel="stylesheet" href="leds.css">
     <link rel="stylesheet" href="dev.css">
@@ -42,13 +43,13 @@
                 <div class="iconContainer" data-name="save" onclick="project.export()"><img class="icon" src="icons/save.svg"></div>
                 <div class="iconContainer" data-name="open" onclick="leds.import()"><img class="icon" src="icons/open.svg"></div>
 
-                <div id="devTools" data-name="dev tools" class="iconContainer needsSerial">
+                <div id="devTools" class="iconContainer needsSerial disabled">
                     <img src="icons/dev.svg" class="icon">
                     <div>
-                        <div class="iconContainer" onclick="document.querySelector('payloadMonitor').classList.toggle('show')" data-name="payload monitor">
+                        <div class="iconContainer" onclick="document.querySelector('payloadMonitor').classList.toggle('show')">
                             <img src="icons/payloadMonitor.svg" class="icon">
                         </div>
-                        <div class="iconContainer" onclick="document.querySelector('hexMonitor').classList.toggle('show')" data-name="hex monitor">
+                        <div class="iconContainer" onclick="document.querySelector('hexMonitor').classList.toggle('show')">
                             <img src="icons/binary.svg" class="icon">
                         </div>
                     </div>

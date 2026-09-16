@@ -55,6 +55,7 @@ class Project {
         } else {
             this.selectFrame(frameN-1)
         }
+        this.nextFrameID = this.frames.length
     }
 
     startMoveFrame(frameN, e) {
@@ -178,7 +179,7 @@ class Project {
 
     selectFrame(nframe) {
         if (nframe >= this.frames.length) {
-            console.error('frame index outside of list')
+            console.error('frame index outside of list: '+nframe)
             return
         }
         this.selectedFrame = nframe
@@ -545,11 +546,9 @@ class Frame {
 
     generateIcon() {
         this.iconElement = document.createElement('canvas')
-        this.iconElement.id = 'iconFrame'+this.id
         this.iconElement.width = 8
         this.iconElement.height = 8
         this.frameContainer = document.createElement('div')
-        this.frameContainer.id = 'iconFrameContainer'+this.id
         this.frameContainer.classList.add('frame')
         
         this.deleteBtn = document.createElement('button')

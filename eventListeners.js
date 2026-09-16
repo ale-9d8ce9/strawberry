@@ -106,6 +106,5 @@ document.getElementById('recentColors').addEventListener('click', (e) => {
 document.getElementById('picker').addEventListener('click', (e) => {
     const pos = diviteTouchTargetInGrid(e, project.colorConfig.pickerSize.x, project.colorConfig.pickerSize.y)
     let color = pos.y * project.colorConfig.pickerSize.y + pos.x
-    alert(color)
     project.selectColor(color)
 })

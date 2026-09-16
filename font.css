@@ -1,0 +1,8 @@
+@font-face {
+    font-family: 'fredoka';
+    src: url('font/Fredoka/Fredoka-VariableFont_wdth\,wght.ttf');
+}
+
+* {
+    font-family: 'fredoka';
+}
