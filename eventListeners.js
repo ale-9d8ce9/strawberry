@@ -91,3 +91,21 @@ document.getElementById('addFrame').addEventListener('click', (e) => {
 document.getElementById('addFramePopup').addEventListener('mouseleave', () => {
     document.getElementById('addFramePopup').classList.remove('show')
 })
+
+
+
+
+
+document.getElementById('recentColors').addEventListener('click', (e) => {
+    const pos = diviteTouchTargetInGrid(e, 8, 4)
+    let i = pos.y * 8 + pos.x
+    if (i >= project.recentColors.length) return
+    project.selectColor(project.recentColors[i])
+})
+
+document.getElementById('picker').addEventListener('click', (e) => {
+    const pos = diviteTouchTargetInGrid(e, project.colorConfig.pickerSize.x, project.colorConfig.pickerSize.y)
+    let color = pos.y * project.colorConfig.pickerSize.y + pos.x
+    alert(color)
+    project.selectColor(color)
+})

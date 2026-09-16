@@ -62,9 +62,6 @@ save data
     ABB
 
 todo ----------------
-max frames
-remove settings button
-fix empty save name
 a bit of polish
 click outside to close add frame popup
 move frames on mobile

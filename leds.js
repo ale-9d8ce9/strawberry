@@ -136,6 +136,9 @@ class Project {
     }
 
     addFrame(frameData = []) {
+        if (this.frames.length == this.colorConfig.maxFrames) {
+            return
+        }
         let nframe = new Frame(this.dataType, this.nextFrameID, frameData)
         this.nextFrameID++
 
@@ -199,22 +202,9 @@ class Project {
             ctx.fillRect(x,y,1,1)
         }
 
-        document.getElementById('picker').addEventListener('click', (e) => {
-            const pos = diviteTouchTargetInGrid(e, this.colorConfig.pickerSize.x, this.colorConfig.pickerSize.y)
-            let color = pos.y * this.colorConfig.pickerSize.y + pos.x
-            project.selectColor(color)
-        })
-
         const recent = document.getElementById('recentColors')
         recent.width = 8
         recent.height = 4
-
-        document.getElementById('recentColors').addEventListener('click', (e) => {
-            const pos = diviteTouchTargetInGrid(e, 8, 4)
-            let i = pos.y * 8 + pos.x
-            if (i >= project.recentColors.length) return
-            project.selectColor(project.recentColors[i])
-        })
     }
 
     updateRecentsColorsPicker() {
@@ -286,6 +276,9 @@ class Project {
         data.dataType = this.dataType
 
         const name = prompt('file name', 'project')
+        if (!name) {
+            return
+        }
 
         const blob = new Blob([JSON.stringify(data)], { type: 'text/json' })
         const url = URL.createObjectURL(blob)
